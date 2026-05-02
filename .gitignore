@@ -1,0 +1,147 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# SecureTO — Global .gitignore (монорепозиторий)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Секреты и конфигурация ────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ── Python / Backend ─────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# Виртуальные окружения
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# БД SQLite (dev)
+*.db
+*.sqlite
+*.sqlite3
+secureto.db
+
+# Alembic
+backend/alembic.ini
+
+# ── Node.js / Frontend ──────────────────────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+*.tsbuildinfo
+
+# ── React Native / Expo ─────────────────────────────────────────────────────
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+*.orig.*
+mobile/ios/Pods/
+mobile/android/app/build/
+mobile/android/build/
+mobile/.gradle/
+
+# ── Docker ──────────────────────────────────────────────────────────────────
+.dockerignore
+
+# ── IDE ─────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ── Логи ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+log/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ── Тестовые данные / временные файлы ───────────────────────────────────────
+tmp/
+temp/
+*.tmp
+*.temp
+uploads/
+
+# ── MinIO / S3 (dev заглушки) ───────────────────────────────────────────────
+dev_photos/
+dev-photos/
+*.mp3
+*.ogg
+*.wav
+*.mp4
+
+# ── SSL (production — генерируются отдельно) ──────────────────────────────────
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
+!nginx/ssl/.gitkeep
+
+# ── Coverage / Reports ──────────────────────────────────────────────────────
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# ── PM2 / Process managers ──────────────────────────────────────────────────
+pids
+*.pid
+*.seed
+*.pid.lock

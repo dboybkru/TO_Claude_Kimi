@@ -1,0 +1,40 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Frontend (Vite dev)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "frontend-web",
+      "port": 5173
+    },
+    {
+      "name": "Backend (FastAPI + uvicorn)",
+      "runtimeExecutable": "uvicorn",
+      "runtimeArgs": ["app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"],
+      "cwd": "backend",
+      "port": 8000
+    },
+    {
+      "name": "Celery Worker",
+      "runtimeExecutable": "celery",
+      "runtimeArgs": ["-A", "app.worker", "worker", "--loglevel=info"],
+      "cwd": "backend",
+      "port": null
+    },
+    {
+      "name": "Celery Beat (scheduler)",
+      "runtimeExecutable": "celery",
+      "runtimeArgs": ["-A", "app.worker", "beat", "--loglevel=info", "--schedule=/tmp/celerybeat-schedule"],
+      "cwd": "backend",
+      "port": null
+    },
+    {
+      "name": "Docker Compose (all services)",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"],
+      "cwd": "backend",
+      "port": 8000
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Table, Tag, Button, Modal, Input, message, Spin, Image, Typography, Space, Card } from 'antd'
-import { api } from '../api/client'
+import api from '../api/client'
 import { PlayCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 
 const { Text } = Typography

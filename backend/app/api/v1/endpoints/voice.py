@@ -388,6 +388,74 @@ async def voice_info(request: Request, _: SystemOnly):
     }
 
 
+@router.put("/ai-key", response_model=dict)
+async def update_ai_key(
+    body: dict,
+    _: Annotated[object, Depends(require_roles(UserRole.ADMIN))],
+):
+    """Update VseGPT API key. Admin only."""
+    api_key = (body.get("api_key") or "").strip()
+    if not api_key:
+        raise HTTPException(400, "API key is required")
+    if not api_key.startswith("sk-") and not api_key.startswith("gpt_"):
+        raise HTTPException(400, "Invalid API key format")
+    
+    # Update .env file on disk (only works in Docker if .env is mounted)
+    import os
+    env_path = os.path.join(os.getcwd(), ".env")
+    if os.path.exists(env_path):
+        lines = open(env_path, "r", encoding="utf-8").readlines()
+        found = False
+        new_lines = []
+        for line in lines:
+            if line.startswith("VSEGPT_API_KEY="):
+                new_lines.append(f"VSEGPT_API_KEY={api_key}\n")
+                found = True
+            else:
+                new_lines.append(line)
+        if not found:
+            new_lines.append(f"VSEGPT_API_KEY={api_key}\n")
+        with open(env_path, "w", encoding="utf-8") as f:
+            f.writelines(new_lines)
+    
+    # Update in-memory settings (until restart)
+    settings.VSEGPT_API_KEY = api_key
+    return {"ai_configured": True, "message": "API key updated"}
+
+
+@router.put("/phone-number", response_model=dict)
+async def update_phone_number(
+    body: dict,
+    _: Annotated[object, Depends(require_roles(UserRole.ADMIN))],
+):
+    """Update voice bot phone number. Admin only."""
+    phone = (body.get("phone_number") or "").strip()
+    if not phone:
+        raise HTTPException(400, "Phone number is required")
+    if len(phone) < 7:
+        raise HTTPException(400, "Phone number too short")
+
+    import os
+    env_path = os.path.join(os.getcwd(), ".env")
+    if os.path.exists(env_path):
+        lines = open(env_path, "r", encoding="utf-8").readlines()
+        found = False
+        new_lines = []
+        for line in lines:
+            if line.startswith("VOICEBOT_PHONE_NUMBER="):
+                new_lines.append(f"VOICEBOT_PHONE_NUMBER={phone}\n")
+                found = True
+            else:
+                new_lines.append(line)
+        if not found:
+            new_lines.append(f"VOICEBOT_PHONE_NUMBER={phone}\n")
+        with open(env_path, "w", encoding="utf-8") as f:
+            f.writelines(new_lines)
+
+    settings.VOICEBOT_PHONE_NUMBER = phone
+    return {"phone_number": phone, "message": "Phone number updated"}
+
+
 @router.post("/webhook", response_model=ProcessCallResult)
 async def call_webhook(
     request: Request,

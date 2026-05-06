@@ -1,6 +1,3 @@
-# SecureTO — Production Docker Compose (IP-based)
-# Используется для сервера 168.222.140.21 (без домена)
-
 version: "3.9"
 
 networks:
@@ -14,7 +11,6 @@ volumes:
   minio_certs:
 
 services:
-  # ── PostgreSQL ───────────────────────────────────────────────────────────
   db:
     image: postgres:16-alpine
     container_name: secureto-db
@@ -28,7 +24,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./backups:/backups
     ports:
-      - "127.0.0.1:5432:5432"  # только localhost
+      - "127.0.0.1:5432:5432"
     networks:
       - secureto-net
     healthcheck:
@@ -37,7 +33,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Redis ────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: secureto-redis
@@ -45,7 +40,7 @@ services:
     volumes:
       - redis_data:/data
     ports:
-      - "127.0.0.1:6379:6379"  # только localhost
+      - "127.0.0.1:6379:6379"
     networks:
       - secureto-net
     healthcheck:
@@ -54,9 +49,8 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── MinIO ──────────────────────────────────────────────────────────────
   minio:
-    image: minio/minio:RELEASE.2024-05-10T01-41-38Z
+    image: minio/minio:latest
     container_name: secureto-minio
     restart: unless-stopped
     env_file: .env
@@ -66,47 +60,31 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
-      - minio_certs:/root/.minio/certs
     ports:
-      - "9000:9000"   # API (внешний для presigned URL)
-      - "127.0.0.1:9001:9001"  # Console только localhost
+      - "9000:9000"
+      - "127.0.0.1:9001:9001"
     networks:
       - secureto-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 15s
-      timeout: 10s
-      retries: 3
 
-  # ── Backend (FastAPI) ──────────────────────────────────────────────────
   backend:
     build: ./backend
     container_name: secureto-backend
     restart: unless-stopped
     env_file: .env
-    environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-secureto}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-secureto}
-      REDIS_URL: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123}
-      APP_ENV: production
-      CORS_ORIGINS: "http://168.222.140.21,http://168.222.140.21:8080"
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-      minio:
-        condition: service_healthy
     volumes:
       - ./backend/alembic:/app/alembic
+      - ./.env:/app/.env:ro
     ports:
-      - "127.0.0.1:8000:8000"  # только localhost, nginx проксирует
+      - "127.0.0.1:8001:8000"
     networks:
       - secureto-net
     command: >
-      sh -c "echo 'Waiting for DB...' && sleep 5 && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+      sh -c "echo 'DB URL: '$$DATABASE_URL && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 15s
@@ -114,55 +92,38 @@ services:
       retries: 3
       start_period: 40s
 
-  # ── Celery Worker ────────────────────────────────────────────────────────
   worker:
+    healthcheck:
+      disable: true
     build: ./backend
     container_name: secureto-worker
     restart: unless-stopped
     env_file: .env
-    environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-secureto}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-secureto}
-      REDIS_URL: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
-      APP_ENV: production
     depends_on:
       - db
       - redis
+    volumes:
+      - ./.env:/app/.env:ro
     networks:
       - secureto-net
     command: celery -A app.tasks worker -l info
-    healthcheck:
-      test: ["CMD-SHELL", "celery -A app.tasks inspect ping || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
-  # ── Celery Beat (Scheduler) ────────────────────────────────────────────
   beat:
+    healthcheck:
+      disable: true
     build: ./backend
     container_name: secureto-beat
     restart: unless-stopped
     env_file: .env
-    environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-secureto}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-secureto}
-      REDIS_URL: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
-      APP_ENV: production
     depends_on:
       - db
       - redis
+    volumes:
+      - ./.env:/app/.env:ro
     networks:
       - secureto-net
-    command: celery -A app.tasks beat -l info --scheduler celery.beat.PersistentScheduler
-    healthcheck:
-      test: ["CMD-SHELL", "ps aux | grep 'celery beat' | grep -v grep || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+    command: celery -A app.tasks beat -l info --schedule=/tmp/celerybeat-schedule
 
-  # ── Frontend (Nginx статика) ─────────────────────────────────────────────
   frontend:
     build: ./frontend-web
     container_name: secureto-frontend
@@ -171,10 +132,7 @@ services:
       - backend
     networks:
       - secureto-net
-    # Не открываем порт — nginx проксирует
 
-  # ── Nginx Reverse Proxy ──────────────────────────────────────────────────
-  # Главный entrypoint — слушает порт 8080 (если 80 занят) или 80
   nginx:
     image: nginx:alpine
     container_name: secureto-nginx
@@ -184,24 +142,7 @@ services:
       - frontend
     volumes:
       - ./nginx/server.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./nginx/logs:/var/log/nginx
     ports:
-      - "8080:80"   # ← если 80 занят, используй 8080. Если 80 свободен — замени на "80:80"
+      - "8080:80"
     networks:
       - secureto-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # ── Voice Bot (опционально — раскомментируй при нужде) ─────────────────
-  # voice-bot:
-  #   build: ./voice-bot
-  #   container_name: secureto-voice
-  #   restart: unless-stopped
-  #   env_file: .env
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - secureto-net

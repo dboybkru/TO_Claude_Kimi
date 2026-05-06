@@ -224,3 +224,5 @@ export const voiceApi = {
     }).then((r) => r.data)
   },
 }
+
+export { default as api } from './client'

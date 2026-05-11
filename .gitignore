@@ -56,7 +56,6 @@ venv.bak/
 secureto.db
 
 # Alembic
-backend/alembic.ini
 
 # ── Node.js / Frontend ──────────────────────────────────────────────────────
 node_modules/

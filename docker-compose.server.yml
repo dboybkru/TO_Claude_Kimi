@@ -3,6 +3,9 @@ version: "3.9"
 networks:
   secureto-net:
     driver: bridge
+  vsb39_proxy:
+    external: true
+    name: ${PROXY_NETWORK:-infra_vsb39_net}
 
 volumes:
   postgres_data:
@@ -61,7 +64,7 @@ services:
     volumes:
       - minio_data:/data
     ports:
-      - "9000:9000"
+      - "127.0.0.1:9000:9000"
       - "127.0.0.1:9001:9001"
     networks:
       - secureto-net
@@ -78,7 +81,6 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/alembic:/app/alembic
-      - ./.env:/app/.env:ro
     ports:
       - "127.0.0.1:8001:8000"
     networks:
@@ -102,8 +104,6 @@ services:
     depends_on:
       - db
       - redis
-    volumes:
-      - ./.env:/app/.env:ro
     networks:
       - secureto-net
     command: celery -A app.tasks worker -l info
@@ -118,8 +118,6 @@ services:
     depends_on:
       - db
       - redis
-    volumes:
-      - ./.env:/app/.env:ro
     networks:
       - secureto-net
     command: celery -A app.tasks beat -l info --schedule=/tmp/celerybeat-schedule
@@ -143,6 +141,7 @@ services:
     volumes:
       - ./nginx/server.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
     networks:
       - secureto-net
+      - vsb39_proxy

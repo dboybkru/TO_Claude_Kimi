@@ -8,6 +8,7 @@ REPO_URL="https://github.com/dboybkru/TO_Claude_Kimi.git"
 APP_DIR="/opt/secureto"
 BACKUP_DIR="/opt/backups/secureto"
 PORT=8080  # ← поменяй на 80 если порт свободен
+PROXY_NETWORK="${PROXY_NETWORK:-infra_vsb39_net}"
 
 echo "=========================================="
 echo " 🚀 SecureTO Server Deploy Script"
@@ -47,6 +48,13 @@ if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/
     apt-get update && apt-get install -y docker-compose-plugin
 fi
 echo "✅ Docker Compose: $(docker compose version || docker-compose --version)"
+echo ""
+
+if ! docker network inspect "$PROXY_NETWORK" >/dev/null 2>&1; then
+    echo "🔗 Создаю Docker network для reverse proxy: $PROXY_NETWORK"
+    docker network create "$PROXY_NETWORK" >/dev/null
+fi
+echo "✅ Proxy network: $PROXY_NETWORK"
 echo ""
 
 # ── Клонирование / обновление ─────────────────────────────────────────
@@ -124,7 +132,7 @@ sleep 15
 # ── Health Check ────────────────────────────────────────────────────────
 echo ""
 echo "🏥 Проверка здоровья..."
-HEALTH_URL="http://localhost:8000/health"
+HEALTH_URL="http://localhost:$PORT/health"
 for i in {1..10}; do
     if curl -fsS "$HEALTH_URL" 2>/dev/null; then
         echo "   ✅ Backend отвечает"
@@ -142,11 +150,11 @@ echo ""
 echo "📍 Доступ по IP:"
 echo "   Frontend:    http://168.222.140.21:$PORT"
 echo "   API:         http://168.222.140.21:$PORT/api/v1/"
-echo "   Health:      http://168.222.142.21:$PORT/api/v1/health"
+echo "   Health:      http://168.222.140.21:$PORT/health"
 echo ""
 echo "📍 Локально на сервере:"
 echo "   Frontend:    http://localhost:$PORT"
-echo "   Backend:     http://localhost:8000"
+echo "   Backend:     http://localhost:8001"
 echo "   MinIO API:   http://localhost:9000"
 echo "   MinIO UI:    http://localhost:9001 (только с сервера)"
 echo ""

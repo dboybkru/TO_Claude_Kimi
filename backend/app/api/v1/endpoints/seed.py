@@ -1,13 +1,18 @@
 """Seed endpoint — заполняет БД всеми объектами из ТЗ. POST /api/v1/seed/objects"""
+import csv
 import uuid
+from pathlib import Path
 from fastapi import APIRouter, HTTPException
-from sqlalchemy import select, func, delete
+from sqlalchemy import delete
 
 from app.api.deps import DBDep, CurrentUser
 from app.models.user import UserRole
 from app.models.object import Object, ObjectType, ObjectStatus
 
 router = APIRouter(prefix="/seed", tags=["seed"])
+DATA_FILE = (
+    Path(__file__).resolve().parents[3] / "data" / "contract_10944505_objects.csv"
+)
 
 # fmt: off
 # Таблица 1 — ОС / ОТС (263 объекта)
@@ -338,29 +343,57 @@ TYPE_MAP = {
 }
 
 
+def _optional_float(value: str | None) -> float | None:
+    if value is None or value == "":
+        return None
+    return float(value.replace(",", "."))
+
+
+def _load_contract_objects() -> list[dict[str, str]]:
+    if not DATA_FILE.exists():
+        raise HTTPException(status_code=500, detail=f"Seed data file not found: {DATA_FILE.name}")
+
+    with DATA_FILE.open("r", encoding="utf-8-sig", newline="") as fh:
+        return list(csv.DictReader(fh))
+
+
 @router.post("/objects")
 async def seed_objects(db: DBDep, current_user: CurrentUser):
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin only")
+
+    rows = _load_contract_objects()
 
     # Удалить старые объекты перед сидированием
     await db.execute(delete(Object))
     await db.commit()
 
     created = 0
-    for name, address, obj_type, region in [*TABLE1, *TABLE2]:
+    for row in rows:
+        address = row["address"]
+        notes = row.get("notes") or ""
+        precision = row.get("map_precision") or ""
+        if precision and precision != "settlement_approx":
+            notes = f"{notes}; координаты требуют проверки: {precision}".strip("; ")
+
         obj = Object(
             id=str(uuid.uuid4()),
-            name=name,
+            name=row["name"],
             address=address,
             address_normalized=address.lower(),
-            type=TYPE_MAP[obj_type],
-            region=region,
+            type=TYPE_MAP.get(row.get("type", "OS"), ObjectType.OS),
+            region=row.get("region") or None,
             status=ObjectStatus.ACTIVE,
-            monthly_maintenance_required=True,
+            monthly_maintenance_required=(
+                row.get("monthly_maintenance_required", "true").lower() == "true"
+            ),
+            contract_number=row.get("contract_number") or "10944505",
+            notes=notes or None,
+            lat=_optional_float(row.get("lat")),
+            lng=_optional_float(row.get("lng")),
         )
         db.add(obj)
         created += 1
 
     await db.commit()
-    return {"message": f"Загружено {created} объектов из ТЗ (Таблицы 1 и 2)", "seeded": created}
+    return {"message": f"Загружено {created} объектов из договора 10944505", "seeded": created}

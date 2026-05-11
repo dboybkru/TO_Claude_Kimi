@@ -40,6 +40,7 @@ import Objects from './pages/Objects'
 import Tickets from './pages/Tickets'
 import Journals from './pages/Journals'
 import Schedule from './pages/Schedule'
+import RoutesPage from './pages/Routes'
 import Users from './pages/Users'
 import Settings from './pages/Settings'
 import Profile from './pages/Profile'
@@ -100,6 +101,15 @@ export default function App() {
             element={
               <RoleGuard check={a => !a.isCustomer && !a.isAuditor}>
                 <Schedule />
+              </RoleGuard>
+            }
+          />
+
+          <Route
+            path="routes"
+            element={
+              <RoleGuard check={a => !a.isCustomer && !a.isAuditor}>
+                <RoutesPage />
               </RoleGuard>
             }
           />

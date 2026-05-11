@@ -120,6 +120,8 @@ export default function AppLayout() {
       show: true },
     { key: 'schedule',  icon: '📅', label: 'Планировщик',   path: '/schedule',
       show: !access.isCustomer && !access.isAuditor },
+    { key: 'routes',    icon: '⛟', label: 'Маршруты',      path: '/routes',
+      show: !access.isCustomer && !access.isAuditor },
     { key: 'users',     icon: '👤', label: 'Пользователи',  path: '/users',
       show: access.canManageUsers },
     { key: 'settings',  icon: '⚙',  label: 'Настройки',     path: '/settings', show: true },

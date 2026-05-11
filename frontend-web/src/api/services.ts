@@ -3,6 +3,7 @@ import type {
   ObjectItem, RepairTicket, MaintenanceJournal, MaintenanceSchedule,
   User, PaginatedResponse, DashboardStats,
   ObjectCreate, RepairTicketCreate, MaintenanceJournalCreate, MaintenanceScheduleCreate,
+  RoutePlanRequest, RoutePlanResponse,
 } from './types'
 
 // ── Seed ─────────────────────────────────────────────────────────────────────
@@ -109,6 +110,11 @@ export const scheduleApi = {
 }
 
 // ── Users ─────────────────────────────────────────────────────────────────────
+export const routesApi = {
+  plan: (data: RoutePlanRequest) =>
+    api.post<RoutePlanResponse>('/routes/plan', data).then((r) => r.data),
+}
+
 export interface UserUpdate {
   full_name?: string
   phone?: string

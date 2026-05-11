@@ -1,10 +1,25 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, objects, users, tickets, journals, schedule, dashboard, seed, voice, audit, storage, call
+from app.api.v1.endpoints import (
+    audit,
+    auth,
+    call,
+    dashboard,
+    journals,
+    objects,
+    routes,
+    schedule,
+    seed,
+    storage,
+    tickets,
+    users,
+    voice,
+)
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router)
 api_router.include_router(objects.router)
+api_router.include_router(routes.router)
 api_router.include_router(users.router)
 api_router.include_router(tickets.router)
 api_router.include_router(journals.router)

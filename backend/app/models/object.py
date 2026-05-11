@@ -37,7 +37,7 @@ class Object(UUIDMixin, TimestampMixin, Base):
     monthly_maintenance_required:Mapped[bool]          = mapped_column(Boolean, default=True, nullable=False)
     last_maintenance_at:         Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
     status:                      Mapped[ObjectStatus]  = mapped_column(SAEnum(ObjectStatus, native_enum=False), nullable=False, default=ObjectStatus.ACTIVE)
-    contract_number:             Mapped[str|None]      = mapped_column(String(100), nullable=True, unique=True)
+    contract_number:             Mapped[str|None]      = mapped_column(String(100), nullable=True)
     notes:                       Mapped[str|None]      = mapped_column(Text, nullable=True)
     lat:                         Mapped[float|None]    = mapped_column(Float, nullable=True)
     lng:                         Mapped[float|None]    = mapped_column(Float, nullable=True)

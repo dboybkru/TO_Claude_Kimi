@@ -161,6 +161,51 @@ export interface MaintenanceScheduleCreate {
   notes?: string
 }
 
+export interface RoutePlanRequest {
+  object_ids?: string[]
+  region?: string
+  object_type?: ObjectType
+  start_lat?: number
+  start_lng?: number
+  end_lat?: number
+  end_lng?: number
+  workday_minutes?: number
+  service_minutes?: number
+  reserve_minutes?: number
+  average_speed_kmh?: number
+  limit?: number
+}
+
+export interface RouteStop {
+  order: number
+  object_id: string
+  name: string
+  address: string
+  region?: string
+  type: ObjectType
+  lat: number
+  lng: number
+  distance_km: number
+  travel_minutes: number
+  service_minutes: number
+  cumulative_minutes: number
+}
+
+export interface RoutePlanResponse {
+  stops: RouteStop[]
+  skipped: number
+  total_distance_km: number
+  total_travel_minutes: number
+  total_service_minutes: number
+  total_minutes: number
+  available_minutes: number
+  reserve_minutes: number
+  start_lat: number
+  start_lng: number
+  end_lat?: number
+  end_lng?: number
+}
+
 export interface Token {
   access_token: string
   refresh_token: string

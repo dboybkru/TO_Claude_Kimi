@@ -20,7 +20,7 @@ async def get_stats(db: DBDep, _: CurrentUser):
     total_objects = (await db.execute(select(func.count()).select_from(Object))).scalar_one()
 
     active_objects = (
-        await db.execute(select(func.count()).select_from(Object).where(Object.status == ObjectStatus.ACTIVE))
+        await db.execute(select(func.count()).select_from(Object).where(Object.status == ObjectStatus.ACTIVE.value))
     ).scalar_one()
 
     open_tickets = (

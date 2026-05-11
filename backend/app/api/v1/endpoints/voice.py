@@ -150,7 +150,7 @@ async def ai_daily_digest(db: DBDep, _: SystemOnly):
 
     # Stats
     total_obj   = (await db.execute(select(func.count()).select_from(Object))).scalar_one()
-    active_obj  = (await db.execute(select(func.count()).select_from(Object).where(Object.status == ObjectStatus.ACTIVE))).scalar_one()
+    active_obj  = (await db.execute(select(func.count()).select_from(Object).where(Object.status == ObjectStatus.ACTIVE.value))).scalar_one()
     overdue_cnt = (await db.execute(select(func.count()).select_from(MaintenanceSchedule).where(MaintenanceSchedule.status == ScheduleStatus.OVERDUE))).scalar_one()
     open_t      = (await db.execute(select(func.count()).select_from(RepairTicket).where(RepairTicket.status.notin_([TicketStatus.RESOLVED, TicketStatus.CLOSED])))).scalar_one()
     crit_t      = (await db.execute(select(func.count()).select_from(RepairTicket).where(RepairTicket.priority == TicketPriority.CRITICAL, RepairTicket.status.notin_([TicketStatus.RESOLVED, TicketStatus.CLOSED])))).scalar_one()
@@ -162,7 +162,7 @@ async def ai_daily_digest(db: DBDep, _: SystemOnly):
     cutoff = now - timedelta(days=35)
     overdue_obj_rows = (await db.execute(
         select(Object.name, Object.region, Object.last_maintenance_at)
-        .where(Object.status == ObjectStatus.ACTIVE)
+        .where(Object.status == ObjectStatus.ACTIVE.value)
         .where((Object.last_maintenance_at == None) | (Object.last_maintenance_at < cutoff))
         .order_by(Object.last_maintenance_at.asc().nullsfirst())
         .limit(10)

@@ -36,7 +36,7 @@ async def plan_route(
 ):
     query = (
         select(Object)
-        .where(Object.status == ObjectStatus.ACTIVE)
+        .where(Object.status == ObjectStatus.ACTIVE.value)
         .where(Object.monthly_maintenance_required.is_(True))
         .where(Object.lat.isnot(None), Object.lng.isnot(None))
     )

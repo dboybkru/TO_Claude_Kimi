@@ -249,7 +249,7 @@ def generate_monthly_plan(self, month: int | None = None, year: int | None = Non
         async with AsyncSessionLocal() as db:
             # Get all active objects
             result = await db.execute(
-                select(Object).where(Object.status == ObjectStatus.ACTIVE)
+                select(Object).where(Object.status == ObjectStatus.ACTIVE.value)
             )
             objects = result.scalars().all()
 

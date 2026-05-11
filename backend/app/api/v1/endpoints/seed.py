@@ -383,7 +383,7 @@ async def seed_objects(db: DBDep, current_user: CurrentUser):
             address_normalized=address.lower(),
             type=TYPE_MAP.get(row.get("type", "OS"), ObjectType.OS),
             region=row.get("region") or None,
-            status=ObjectStatus.ACTIVE,
+            status=ObjectStatus.ACTIVE.value,
             monthly_maintenance_required=(
                 row.get("monthly_maintenance_required", "true").lower() == "true"
             ),

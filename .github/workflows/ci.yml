@@ -97,8 +97,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
+          cache-dependency-path: frontend-web/package-lock.json
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Build
         run: npm run build
 
@@ -114,11 +115,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
+          cache-dependency-path: mobile/package-lock.json
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: TypeScript check
-        run: npx tsc --noEmit || true
-        continue-on-error: true
+        run: npx tsc --noEmit
 
   # ── Docker: Build Images ────────────────────────────────────────────────
   docker:

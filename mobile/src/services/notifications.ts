@@ -1,13 +1,15 @@
 import * as Notifications from 'expo-notifications'
 import { Platform } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { api } from '../api/client'
+import api from '../api/client'
 
 const PUSH_TOKEN_KEY = '@push_token'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),

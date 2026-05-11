@@ -18,6 +18,9 @@ class MaintenanceJournal(UUIDMixin, TimestampMixin, Base):
     arrived_at:   Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
 
+    # Тип системы и описание неисправности — колонка Приложения №2 к ТЗ
+    system_type:         Mapped[str|None]  = mapped_column(String(200), nullable=True)
+
     checklist:           Mapped[dict|None] = mapped_column(JSON, nullable=True)
     result_description:  Mapped[str|None]  = mapped_column(Text, nullable=True)
     system_status:       Mapped[str|None]  = mapped_column(String(20), nullable=True)

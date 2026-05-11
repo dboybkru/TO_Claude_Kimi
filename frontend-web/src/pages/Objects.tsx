@@ -9,6 +9,7 @@ import { seedApi } from '../api/services'
 import type { ObjectItem, ObjectCreate, ObjectType, ObjectStatus } from '../api/types'
 import Modal from '../components/Modal'
 import { FormField, inputCss, selectCss, textareaCss } from '../components/FormField'
+import { printEquipmentAct, printBlankJournals } from '../utils/printForms'
 
 // ── Static mock (fallback) ────────────────────────────────────────────────────
 const MOCK_OBJECTS: Partial<ObjectItem>[] = [
@@ -298,6 +299,14 @@ function DetailPanel({ obj, onClose, onCreateJournal, onCreateTicket, onEdit, ac
             ['№ договора', obj.contract_number ?? '—'],
             ['Тип системы', TYPE_LABELS[obj.type ?? 'OS']],
             ['Ежемес. ТО', obj.monthly_maintenance_required ? 'Да' : 'Нет'],
+            ['Координаты', (() => {
+              const gs = (obj as ObjectItem & { geocode_status?: string }).geocode_status
+              if (gs === 'exact') return '✓ Точный адрес'
+              if (gs === 'approximate') return '≈ Центр нас. пункта'
+              if (gs === 'manual') return '✎ Задано вручную'
+              if (gs === 'failed') return '✗ Не найдены'
+              return obj.lat ? `${obj.lat?.toFixed(4)}, ${obj.lng?.toFixed(4)}` : '—'
+            })()],
           ].map(([l, v]) => (
             <div key={String(l)} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid var(--border-inner)' }}>
               <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{l}</span>
@@ -321,6 +330,19 @@ function DetailPanel({ obj, onClose, onCreateJournal, onCreateTicket, onEdit, ac
       <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
         {access.canCreateJournal && <button onClick={() => onCreateJournal(obj.id!)} style={{ width: '100%', padding: 10, borderRadius: 8, background: 'var(--blue)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>📋 Создать журнал ТО</button>}
         {access.canCreateTicket  && <button onClick={() => onCreateTicket(obj.id!)} style={{ width: '100%', padding: 10, borderRadius: 8, background: 'transparent', color: '#62b8f5', border: '1px solid #1a7dbd44', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>🔧 Создать заявку</button>}
+        <button
+          title="Пустой бланк журнала для размещения на объекте (Приложение №2 к ТЗ)"
+          onClick={() => printBlankJournals([{ id: obj.id!, name: obj.name!, address: obj.address!, type: obj.type ?? 'OS' }])}
+          style={{ width: '100%', padding: 10, borderRadius: 8, background: 'transparent', color: '#62b8f5', border: '1px solid #1a7dbd44', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>🖨 Бланк журнала (Прил. №2)</button>
+        <button
+          title="Акт технической оснащённости объекта (Приложение №5 к ТЗ)"
+          onClick={() => printEquipmentAct([{
+            object_name: obj.name!,
+            object_address: obj.address!,
+            type: obj.type ?? 'OS',
+            equipment: ((obj as ObjectItem & { equipment?: { name: string; quantity: number }[] }).equipment ?? []),
+          }])}
+          style={{ width: '100%', padding: 10, borderRadius: 8, background: 'transparent', color: '#62b8f5', border: '1px solid #1a7dbd44', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>📄 Акт оснащённости (Прил. №5)</button>
         <ObjectAiReport objectId={obj.id!} />
         {access.canEditObject    && <button onClick={() => onEdit(obj)} style={{ width: '100%', padding: 10, borderRadius: 8, background: 'transparent', color: 'var(--text-3)', border: '1px solid var(--border-mid)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>✏ Редактировать объект</button>}
       </div>
@@ -511,7 +533,7 @@ export default function Objects() {
                     )
                     return (
                       <tr key={obj.id} onClick={() => setSelected(obj === selected ? null : obj)} style={{ cursor: 'pointer' }}>
-                        {td(<><div style={{ color: 'var(--text-1)', fontWeight: 500, fontSize: 12.5, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</div><div style={{ fontSize: 10, color: 'var(--text-4)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{obj.address}</div></>)}
+                        {td(<><div style={{ color: 'var(--text-1)', fontWeight: 500, fontSize: 12.5, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</div><div style={{ fontSize: 10, color: 'var(--text-4)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{obj.address}</div>{(obj as ObjectItem & { geocode_status?: string }).geocode_status === 'approximate' && <span title="Координаты на уровне населённого пункта, точный адрес не геокодирован" style={{ fontSize: 9, color: '#d9a305', background: '#2a1e00', padding: '1px 5px', borderRadius: 3, marginTop: 2, display: 'inline-block' }}>≈ нас. пункт</span>}{(obj as ObjectItem & { geocode_status?: string }).geocode_status === 'failed' && <span title="Координаты не найдены" style={{ fontSize: 9, color: 'var(--red)', background: '#2a0a0a', padding: '1px 5px', borderRadius: 3, marginTop: 2, display: 'inline-block' }}>нет координат</span>}</>)}
                         {td(<span style={{ background: tbg, color: tc, fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4, whiteSpace: 'nowrap' }}>{TYPE_LABELS[obj.type ?? 'OS']}</span>)}
                         {td(<span style={{ color: 'var(--text-2)' }}>{obj.region ?? '—'}</span>)}
                         {td(<span className={`chip ${STATUS_CHIP[s]}`}><span className="chip-dot" style={{ background: markerColor(s) }} />{STATUS_LABELS[s]}</span>)}

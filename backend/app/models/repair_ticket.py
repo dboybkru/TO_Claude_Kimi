@@ -40,20 +40,24 @@ class TicketStatus(str, enum.Enum):
     CLOSED            = "closed"
 
 
+def enum_values(enum_cls: type[enum.Enum]) -> list[str]:
+    return [item.value for item in enum_cls]
+
+
 class RepairTicket(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "repair_tickets"
 
     ticket_number:    Mapped[str]              = mapped_column(String(20), unique=True, nullable=False, index=True)
-    source:           Mapped[TicketSource]     = mapped_column(SAEnum(TicketSource, native_enum=False), nullable=False, default=TicketSource.MANUAL)
+    source:           Mapped[TicketSource]     = mapped_column(SAEnum(TicketSource, native_enum=False, values_callable=enum_values), nullable=False, default=TicketSource.MANUAL.value)
     object_id:        Mapped[str|None]         = mapped_column(String(36), ForeignKey("objects.id", ondelete="SET NULL"), nullable=True, index=True)
     caller_phone:     Mapped[str|None]         = mapped_column(String(20), nullable=True)
     call_recording_url:Mapped[str|None]        = mapped_column(Text, nullable=True)
     called_at:        Mapped[datetime|None]    = mapped_column(DateTime(timezone=True), nullable=True)
     title:            Mapped[str]              = mapped_column(String(500), nullable=False)
     description:      Mapped[str|None]         = mapped_column(Text, nullable=True)
-    fault_type:       Mapped[FaultType|None]   = mapped_column(SAEnum(FaultType, native_enum=False), nullable=True)
-    priority:         Mapped[TicketPriority]   = mapped_column(SAEnum(TicketPriority, native_enum=False), nullable=False, default=TicketPriority.NORMAL)
-    status:           Mapped[TicketStatus]     = mapped_column(SAEnum(TicketStatus, native_enum=False), nullable=False, default=TicketStatus.NEW, index=True)
+    fault_type:       Mapped[FaultType|None]   = mapped_column(SAEnum(FaultType, native_enum=False, values_callable=enum_values), nullable=True)
+    priority:         Mapped[TicketPriority]   = mapped_column(SAEnum(TicketPriority, native_enum=False, values_callable=enum_values), nullable=False, default=TicketPriority.NORMAL.value)
+    status:           Mapped[TicketStatus]     = mapped_column(SAEnum(TicketStatus, native_enum=False, values_callable=enum_values), nullable=False, default=TicketStatus.NEW.value, index=True)
     reporter_id:      Mapped[str|None]         = mapped_column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     assigned_to_id:   Mapped[str|None]         = mapped_column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     assigned_at:      Mapped[datetime|None]    = mapped_column(DateTime(timezone=True), nullable=True)

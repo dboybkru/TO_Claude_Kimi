@@ -9,6 +9,8 @@ class MaintenanceJournalBase(BaseModel):
     object_id: str
     technician_id: str
     arrived_at: datetime | None = None
+    # Тип системы и описание неисправности (Приложение №2 к ТЗ, столбец 3)
+    system_type: str | None = None
     checklist: list[dict[str, Any]] | None = None
     result_description: str | None = None
     system_status: str | None = None
@@ -22,6 +24,7 @@ class MaintenanceJournalCreate(MaintenanceJournalBase):
 class MaintenanceJournalUpdate(BaseModel):
     arrived_at: datetime | None = None
     completed_at: datetime | None = None
+    system_type: str | None = None
     checklist: list[dict[str, Any]] | None = None
     result_description: str | None = None
     system_status: str | None = None

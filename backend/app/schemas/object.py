@@ -26,6 +26,11 @@ class ObjectBase(BaseModel):
     lng: float | None = None
     customer_id: str | None = None
     responsible_technician_id: str | None = None
+    geocode_status: str | None = None
+    geocode_source: str | None = None
+    service_duration_minutes: int | None = None
+    response_hours: int | None = None
+    arrival_hours: int | None = None
 
 
 class ObjectCreate(ObjectBase):
@@ -49,12 +54,22 @@ class ObjectUpdate(BaseModel):
     lng: float | None = None
     customer_id: str | None = None
     responsible_technician_id: str | None = None
+    geocode_status: str | None = None
+    geocode_source: str | None = None
+    service_duration_minutes: int | None = None
+    response_hours: int | None = None
+    arrival_hours: int | None = None
 
 
 class ObjectRead(ObjectBase):
     model_config = ConfigDict(from_attributes=True)
     id: str
     last_maintenance_at: datetime | None = None
+    geocode_status: str | None = None
+    geocode_source: str | None = None
+    service_duration_minutes: int | None = None
+    response_hours: int | None = None
+    arrival_hours: int | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -80,4 +95,5 @@ class ObjectMapItem(BaseModel):
     status: ObjectStatus
     lat: float | None
     lng: float | None
+    geocode_status: str | None = None
     last_maintenance_at: datetime | None = None

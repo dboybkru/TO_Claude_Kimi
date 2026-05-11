@@ -10,6 +10,13 @@ import type { MaintenanceJournal, MaintenanceJournalCreate, ObjectItem, User } f
 import Modal from '../components/Modal'
 import SignatureCanvas from '../components/SignatureCanvas'
 import { FormField, inputCss, selectCss, textareaCss } from '../components/FormField'
+import {
+  printObjectJournal,
+  printBlankJournals,
+  printSummaryJournal,
+  type JournalEntry,
+  type SummaryEntry,
+} from '../utils/printForms'
 
 const STATUS_LABELS: Record<string, string> = { operational: 'Работоспособна', repaired: 'Отремонтирована', needs_repair: 'Требует ремонта' }
 const STATUS_CHIP: Record<string, string>   = { operational: 'chip-green', repaired: 'chip-blue', needs_repair: 'chip-red' }
@@ -506,6 +513,7 @@ export default function Journals() {
   const [createOpen, setCreate] = useState(false)
   const [createForObjectId, setCreateForObjectId] = useState<string | undefined>()
   const [editTarget, setEdit]   = useState<MaintenanceJournal | null>(null)
+  const [summaryLoading, setSummaryLoading] = useState(false)
 
   const { data, loading, error, refetch } = useApi(() => journalsApi.list({ size: 100, system_status: filterStatus !== 'all' ? filterStatus : undefined }), [filterStatus])
   const { data: objectsData } = useApi(() => objectsApi.list({ size: 200 }))
@@ -536,6 +544,75 @@ export default function Journals() {
     }
   }, [location.state])
 
+  // Печать Журнала ТО по объекту (Приложение №2 к ТЗ) — все записи выбранного объекта
+  const handlePrintObjectJournal = useCallback((j: MaintenanceJournal) => {
+    const obj = objectMap[j.object_id]
+    if (!obj) return
+    // Берём все записи для этого объекта из текущей загруженной страницы
+    const objectEntries = (data?.items ?? [])
+      .filter(x => x.object_id === j.object_id)
+      .sort((a, b) => (a.journal_number ?? 0) - (b.journal_number ?? 0))
+    const entries: JournalEntry[] = objectEntries.map((e, i) => ({
+      num: i + 1,
+      journal_number: e.journal_number ?? null,
+      arrived_at: e.arrived_at ?? null,
+      completed_at: e.completed_at ?? null,
+      system_type: (e as MaintenanceJournal & { system_type?: string }).system_type ?? '',
+      result_description: e.result_description ?? '',
+      final_statement: e.final_statement ?? '',
+      technician_name: userMap[e.technician_id]?.full_name ?? userMap[e.technician_id]?.email ?? '',
+      technician_signature: e.technician_signature ?? '',
+      customer_rep_name: e.customer_rep_name ?? '',
+      customer_signature: e.customer_signature ?? '',
+    }))
+    printObjectJournal(
+      { id: obj.id, name: obj.name, address: obj.address, type: obj.type },
+      entries,
+    )
+  }, [data, objectMap, userMap])
+
+  // Печать Сводного журнала (Приложение №4 к ТЗ) — получаем с сервера все завершённые записи
+  const handlePrintSummaryJournal = useCallback(async () => {
+    setSummaryLoading(true)
+    try {
+      const raw = await journalsApi.getSummary()
+      const entries: SummaryEntry[] = (raw as Record<string, unknown>[]).map((r, i) => ({
+        num: (r.num as number) ?? i + 1,
+        journal_number: r.journal_number as number | null,
+        completed_at: r.completed_at as string | null,
+        arrived_at: r.arrived_at as string | null,
+        object_name: r.object_name as string,
+        object_address: r.object_address as string,
+        system_type: r.system_type as string,
+        result_description: r.result_description as string,
+        final_statement: r.final_statement as string,
+        technician_name: r.technician_name as string,
+        technician_signature: r.technician_signature as string,
+        customer_rep_name: r.customer_rep_name as string,
+        customer_signature: r.customer_signature as string,
+      }))
+      printSummaryJournal(entries)
+    } catch (e) {
+      console.error('Ошибка загрузки сводного журнала:', e)
+      alert('Не удалось загрузить данные сводного журнала')
+    } finally {
+      setSummaryLoading(false)
+    }
+  }, [])
+
+  // Печать пустых бланков для объектов (для физической раздачи на объекты)
+  const handlePrintBlankJournals = useCallback(() => {
+    const objs = (objectsData?.items ?? []).map(o => ({
+      id: o.id, name: o.name, address: o.address, type: o.type,
+    }))
+    if (objs.length === 0) {
+      alert('Объекты не загружены')
+      return
+    }
+    if (objs.length > 30 && !confirm(`Будет открыто ${objs.length} страниц (по одной на объект). Продолжить?`)) return
+    printBlankJournals(objs)
+  }, [objectsData])
+
   const items = data?.items ?? []
   const filtered = items.filter(j => {
     if (!search) return true
@@ -556,6 +633,10 @@ export default function Journals() {
         <div style={{ flex: 1 }} />
         {loading && <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Загрузка…</span>}
         <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{filtered.length} записей</span>
+        <button className="topbar-btn" title="Пустые бланки для 313 объектов (Приложение №2)" onClick={handlePrintBlankJournals}
+          style={{ fontSize: 11 }}>🖨 Бланки</button>
+        <button className="topbar-btn" title="Сводный журнал (Приложение №4 к ТЗ)" disabled={summaryLoading} onClick={handlePrintSummaryJournal}
+          style={{ fontSize: 11 }}>{summaryLoading ? 'Загрузка…' : '📋 Сводный журнал'}</button>
         {access.canCreateJournal && <button className="topbar-btn btn-primary" onClick={() => setCreate(true)}>+ Создать журнал</button>}
       </div>
 
@@ -614,8 +695,9 @@ export default function Journals() {
                           <span className={`chip ${STATUS_CHIP[s]}`}>{STATUS_LABELS[s]}</span>
                         </td>
                         <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border-inner)' }}>
-                          <button onClick={e => { e.stopPropagation(); printJournal(j, objectMap[j.object_id]?.name ?? j.object_id, userMap[j.technician_id]?.full_name ?? j.technician_id) }}
-                            style={{ background: 'var(--bg-input)', border: '1px solid var(--border-mid)', borderRadius: 6, color: '#62b8f5', fontSize: 11, padding: '4px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>📄 PDF</button>
+                          <button onClick={e => { e.stopPropagation(); handlePrintObjectJournal(j) }}
+                            title="Журнал ТО объекта (Приложение №2 к ТЗ)"
+                            style={{ background: 'var(--bg-input)', border: '1px solid var(--border-mid)', borderRadius: 6, color: '#62b8f5', fontSize: 11, padding: '4px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>📄 Журнал</button>
                         </td>
                       </tr>
                     )
@@ -725,8 +807,9 @@ export default function Journals() {
                     {completing ? 'Сохранение…' : '✓ Завершить ТО'}
                   </button>
                 )}
-                <button onClick={() => printJournal(selected, objectMap[selected.object_id]?.name ?? selected.object_id, userMap[selected.technician_id]?.full_name ?? selected.technician_id)}
-                  style={{ width: '100%', padding: 10, borderRadius: 8, background: 'var(--blue)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>📄 Скачать PDF-акт</button>
+                <button onClick={() => handlePrintObjectJournal(selected)}
+                  title="Журнал ТО объекта — все записи (Приложение №2 к ТЗ)"
+                  style={{ width: '100%', padding: 10, borderRadius: 8, background: 'var(--blue)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>📄 Журнал объекта (Прил. №2)</button>
                 {selected.completed_at && (
                   <AiSummaryButton journalId={selected.id} existingSummary={selected.final_statement ?? null} />
                 )}

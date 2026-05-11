@@ -1,7 +1,7 @@
 ﻿import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -83,19 +83,60 @@ class CRUDJournal(CRUDBase[MaintenanceJournal]):
         object_id: str | None = None,
         technician_id: str | None = None,
         system_status: str | None = None,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
     ) -> tuple[list[MaintenanceJournal], int]:
         query = select(MaintenanceJournal)
+        filters = []
         if object_id:
-            query = query.where(MaintenanceJournal.object_id == object_id)
+            filters.append(MaintenanceJournal.object_id == object_id)
         if technician_id:
-            query = query.where(MaintenanceJournal.technician_id == technician_id)
+            filters.append(MaintenanceJournal.technician_id == technician_id)
         if system_status:
-            query = query.where(MaintenanceJournal.system_status == system_status)
+            filters.append(MaintenanceJournal.system_status == system_status)
+        if date_from:
+            filters.append(MaintenanceJournal.completed_at >= date_from)
+        if date_to:
+            filters.append(MaintenanceJournal.completed_at <= date_to)
+        if filters:
+            query = query.where(and_(*filters))
 
         count_result = await db.execute(select(func.count()).select_from(query.subquery()))
         total = count_result.scalar_one()
         result = await db.execute(query.order_by(MaintenanceJournal.created_at.desc()).offset(skip).limit(limit))
         return result.scalars().all(), total
+
+    async def get_summary_data(
+        self,
+        db: AsyncSession,
+        *,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+        object_id: str | None = None,
+    ) -> list[MaintenanceJournal]:
+        """Данные для Сводного журнала (Приложение №4 к ТЗ договора 10944505).
+        Возвращает все завершённые записи с подгрузкой объекта и техника.
+        """
+        query = (
+            select(MaintenanceJournal)
+            .options(
+                selectinload(MaintenanceJournal.object),
+                selectinload(MaintenanceJournal.technician),
+            )
+            .where(MaintenanceJournal.completed_at.is_not(None))
+        )
+        filters = []
+        if object_id:
+            filters.append(MaintenanceJournal.object_id == object_id)
+        if date_from:
+            filters.append(MaintenanceJournal.completed_at >= date_from)
+        if date_to:
+            filters.append(MaintenanceJournal.completed_at <= date_to)
+        if filters:
+            query = query.where(and_(*filters))
+
+        result = await db.execute(query.order_by(MaintenanceJournal.completed_at.asc()))
+        return result.scalars().all()
 
     async def complete(
         self,

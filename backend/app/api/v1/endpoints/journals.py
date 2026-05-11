@@ -1,4 +1,5 @@
 ﻿import os
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File, status, Depends
@@ -25,6 +26,8 @@ async def list_journals(
     object_id: str | None = None,
     technician_id: str | None = None,
     system_status: str | None = None,
+    date_from: datetime | None = Query(None),
+    date_to: datetime | None = Query(None),
 ):
     if current_user.role == UserRole.TECHNICIAN:
         technician_id = current_user.id
@@ -36,6 +39,8 @@ async def list_journals(
         object_id=object_id,
         technician_id=technician_id,
         system_status=system_status,
+        date_from=date_from,
+        date_to=date_to,
     )
     return {
         "items": [MaintenanceJournalRead.model_validate(j).model_dump(mode="json") for j in items],
@@ -43,6 +48,48 @@ async def list_journals(
         "page": page,
         "size": size,
     }
+
+
+@router.get("/summary", response_model=list[dict])
+async def get_summary_journal(
+    db: DBDep,
+    _: CurrentUser,
+    date_from: datetime | None = Query(None, description="Начало периода (ISO 8601)"),
+    date_to: datetime | None = Query(None, description="Конец периода (ISO 8601)"),
+    object_id: str | None = Query(None),
+):
+    """Сводный журнал технического обслуживания — Приложение №4 к ТЗ договора 10944505.
+
+    Возвращает список завершённых записей с данными для формирования таблицы:
+    №п/п | Дата ТО | Наименование и адрес объекта | Тип системы/неисправность |
+    Результат | Дата и время выполнения заявки | Отметка исполнителя | Отметка заказчика
+    """
+    records = await crud.journal.get_summary_data(
+        db, date_from=date_from, date_to=date_to, object_id=object_id
+    )
+    result = []
+    for i, j in enumerate(records, start=1):
+        obj = j.object
+        tech = j.technician
+        result.append({
+            "num": i,
+            "journal_number": j.journal_number,
+            "completed_at": j.completed_at.isoformat() if j.completed_at else None,
+            "arrived_at": j.arrived_at.isoformat() if j.arrived_at else None,
+            "object_id": j.object_id,
+            "object_name": obj.name if obj else "",
+            "object_address": obj.address if obj else "",
+            "system_type": j.system_type or "",
+            "result_description": j.result_description or "",
+            "final_statement": j.final_statement or "",
+            "technician_name": (
+                f"{tech.full_name or tech.email}" if tech else ""
+            ),
+            "technician_signature": j.technician_signature or "",
+            "customer_rep_name": j.customer_rep_name or "",
+            "customer_signature": j.customer_signature or "",
+        })
+    return result
 
 
 @router.get("/{journal_id}", response_model=MaintenanceJournalRead)

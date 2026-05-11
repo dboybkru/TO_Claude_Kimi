@@ -2,7 +2,7 @@ import uuid
 import enum
 from datetime import datetime
 
-from sqlalchemy import String, ForeignKey, Enum as SAEnum, Text, Boolean, DateTime, Float, JSON
+from sqlalchemy import String, ForeignKey, Enum as SAEnum, Text, Boolean, DateTime, Float, JSON, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -49,6 +49,17 @@ class Object(UUIDMixin, TimestampMixin, Base):
     notes:                       Mapped[str|None]      = mapped_column(Text, nullable=True)
     lat:                         Mapped[float|None]    = mapped_column(Float, nullable=True)
     lng:                         Mapped[float|None]    = mapped_column(Float, nullable=True)
+
+    # Геокодинг — статус точности координат
+    # exact: точный адрес, approximate: центр нас. пункта, failed: не найден, manual: задано вручную
+    geocode_status:  Mapped[str|None] = mapped_column(String(20), nullable=True, default="approximate")
+    geocode_source:  Mapped[str|None] = mapped_column(String(50), nullable=True)
+
+    # Планировщик выездов (Договор 10944505, п.1.2.2 / п.2.3.5)
+    service_duration_minutes: Mapped[int|None] = mapped_column(Integer, nullable=True)
+    # SLA: response_hours=4 (диспетчер обязан отреагировать), arrival_hours=8 (физический приезд)
+    response_hours: Mapped[int|None] = mapped_column(Integer, nullable=True, default=4)
+    arrival_hours:  Mapped[int|None] = mapped_column(Integer, nullable=True, default=8)
 
     customer_id:              Mapped[str|None] = mapped_column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     responsible_technician_id:Mapped[str|None] = mapped_column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)

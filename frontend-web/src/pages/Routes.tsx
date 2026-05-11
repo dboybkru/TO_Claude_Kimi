@@ -460,9 +460,3 @@ export default function RoutesPage() {
     </div>
   )
 }
-          />
-        </main>
-      </div>
-    </div>
-  )
-}

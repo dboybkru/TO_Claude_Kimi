@@ -81,10 +81,10 @@ function RouteMap({ plan, allObjects, showAll, startLat, startLng, onMapClick, p
       zoomControl: true,
       attributionControl: false,
     })
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 18,
-      subdomains: 'abcd',
-    }).addTo(map)
+    L.tileLayer(
+      'https://core-renderer-tiles.maps.yandex.net/tiles?l=map&v=21.08.09-1&x={x}&y={y}&z={z}&scale=1&lang=ru_RU',
+      { maxZoom: 19, attribution: '© Яндекс' }
+    ).addTo(map)
     leafletRef.current = map
     allLayerRef.current = L.layerGroup().addTo(map)
     routeLayerRef.current = L.layerGroup().addTo(map)
@@ -454,6 +454,12 @@ export default function RoutesPage() {
             startLng={startLng}
             onMapClick={handleMapClick}
             planObjectIds={planObjectIds}
+          />
+        </main>
+      </div>
+    </div>
+  )
+}
           />
         </main>
       </div>

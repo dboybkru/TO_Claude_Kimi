@@ -36,7 +36,15 @@ class Object(UUIDMixin, TimestampMixin, Base):
     contact_person:              Mapped[dict|None]     = mapped_column(JSON, nullable=True)
     monthly_maintenance_required:Mapped[bool]          = mapped_column(Boolean, default=True, nullable=False)
     last_maintenance_at:         Mapped[datetime|None] = mapped_column(DateTime(timezone=True), nullable=True)
-    status:                      Mapped[ObjectStatus]  = mapped_column(SAEnum(ObjectStatus, native_enum=False), nullable=False, default=ObjectStatus.ACTIVE.value)
+    status:                      Mapped[ObjectStatus]  = mapped_column(
+        SAEnum(
+            ObjectStatus,
+            native_enum=False,
+            values_callable=lambda enum_cls: [item.value for item in enum_cls],
+        ),
+        nullable=False,
+        default=ObjectStatus.ACTIVE.value,
+    )
     contract_number:             Mapped[str|None]      = mapped_column(String(100), nullable=True)
     notes:                       Mapped[str|None]      = mapped_column(Text, nullable=True)
     lat:                         Mapped[float|None]    = mapped_column(Float, nullable=True)

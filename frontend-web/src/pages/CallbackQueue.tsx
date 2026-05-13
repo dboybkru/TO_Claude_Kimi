@@ -124,8 +124,18 @@ export default function CallbackQueue() {
   ]
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2 style={{ color: '#e2e8f0', marginBottom: 16 }}>Очередь перезвонов</h2>
+    <div className="md3-page">
+      <nav aria-label="breadcrumbs" style={{ fontSize: 13, color: 'var(--md-sys-color-on-surface-variant)' }}>
+        <span style={{ cursor: 'pointer' }}>Дашборд</span>
+        <span style={{ margin: '0 8px', color: 'var(--md-sys-color-outline)' }}>›</span>
+        <span style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 500 }}>Очередь перезвонов</span>
+      </nav>
+      <h2 style={{
+        margin: 0,
+        fontSize: 22, fontWeight: 500, lineHeight: '28px',
+        color: 'var(--md-sys-color-on-surface)',
+        fontFamily: 'var(--md-sys-typescale-font)',
+      }}>Очередь перезвонов</h2>
       {loading ? (
         <Spin size="large" />
       ) : (

@@ -7,11 +7,15 @@ import { Button, Input, message } from 'antd'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden', marginBottom: 16 }}>
-      <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-        {title}
+    <div className="md3-card" style={{ marginBottom: 16 }}>
+      <div className="md3-card__header" style={{ borderBottom: '1px solid var(--md-sys-color-outline-variant)' }}>
+        <div className="md3-card__title" style={{
+          fontSize: 11, fontWeight: 700,
+          letterSpacing: '0.8px', textTransform: 'uppercase',
+          color: 'var(--md-sys-color-on-surface-variant)',
+        }}>{title}</div>
       </div>
-      <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {children}
       </div>
     </div>
@@ -20,9 +24,20 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Row({ label, value, accent, mono }: { label: string; value: React.ReactNode; accent?: string; mono?: boolean }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border-inner)' }}>
-      <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{label}</span>
-      <span style={{ fontSize: 12.5, color: accent ?? 'var(--text-1)', fontWeight: 500, fontFamily: mono ? 'monospace' : 'inherit' }}>
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '8px 0',
+      borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+      gap: 14,
+    }}>
+      <span style={{ fontSize: 13, color: 'var(--md-sys-color-on-surface-variant)' }}>{label}</span>
+      <span style={{
+        fontSize: 13.5,
+        color: accent ?? 'var(--md-sys-color-on-surface)',
+        fontWeight: 500,
+        fontFamily: mono ? 'ui-monospace, monospace' : 'inherit',
+        textAlign: 'right',
+      }}>
         {value}
       </span>
     </div>
@@ -30,10 +45,11 @@ function Row({ label, value, accent, mono }: { label: string; value: React.React
 }
 
 function StatusDot({ ok }: { ok: boolean }) {
+  const color = ok ? '#52C97E' : 'var(--md-sys-color-error)'
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-      <span style={{ width: 8, height: 8, borderRadius: '50%', background: ok ? 'var(--green)' : 'var(--red)', display: 'inline-block' }} />
-      <span style={{ color: ok ? 'var(--green)' : 'var(--red)', fontSize: 12 }}>{ok ? 'Подключено' : 'Не настроено'}</span>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color, fontSize: 13 }}>
+      <span style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
+      {ok ? 'Подключено' : 'Не настроено'}
     </span>
   )
 }
@@ -44,8 +60,9 @@ function CopyButton({ text }: { text: string }) {
     navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) })
   }
   return (
-    <button onClick={copy} style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 4, background: copied ? 'var(--green-bg)' : 'var(--bg-input)', border: `1px solid ${copied ? '#1a4030' : 'var(--border-mid)'}`, color: copied ? 'var(--green)' : 'var(--text-3)', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit' }}>
-      {copied ? '✓ Скопировано' : 'Копировать'}
+    <button onClick={copy} className="md3-chip" style={{ marginLeft: 8, height: 28 }}>
+      <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 16 }}>{copied ? 'check' : 'content_copy'}</span>
+      {copied ? 'Скопировано' : 'Копировать'}
     </button>
   )
 }
@@ -65,12 +82,12 @@ export default function Settings() {
     : currentOrigin
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', maxWidth: 720 }}>
-      <div style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 20 }}>
-        <span style={{ color: '#4d7a9e' }}>Дашборд</span>
-        <span style={{ color: '#2a4460', margin: '0 6px' }}>›</span>
-        <span style={{ color: 'var(--text-1)' }}>Настройки системы</span>
-      </div>
+    <div className="md3-page" style={{ maxWidth: 760 }}>
+      <nav aria-label="breadcrumbs" style={{ fontSize: 13, color: 'var(--md-sys-color-on-surface-variant)' }}>
+        <span style={{ cursor: 'pointer' }}>Дашборд</span>
+        <span style={{ margin: '0 8px', color: 'var(--md-sys-color-outline)' }}>›</span>
+        <span style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 500 }}>Настройки системы</span>
+      </nav>
 
       <Section title="Профиль">
         <Row label="ФИО"    value={user?.full_name} />
@@ -141,8 +158,17 @@ export default function Settings() {
             } />
             <Row label="Webhook защищён" value={<StatusDot ok={voiceInfo.webhook_secured} />} />
             <div style={{ paddingTop: 4 }}>
-              <div style={{ fontSize: 11, color: 'var(--text-4)', marginBottom: 6 }}>Webhook URL (настройте в личном кабинете АТС):</div>
-              <div style={{ background: '#091624', border: '1px solid #1a2e42', borderRadius: 6, padding: '8px 12px', fontSize: 11, color: '#62b8f5', fontFamily: 'monospace', display: 'flex', justifyContent: 'space-between', alignItems: 'center', wordBreak: 'break-all' }}>
+              <div style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)', marginBottom: 8 }}>Webhook URL (настройте в личном кабинете АТС):</div>
+              <div style={{
+                background: 'var(--md-sys-color-surface-container-low)',
+                borderRadius: 'var(--md-sys-shape-corner-small)',
+                padding: '10px 14px',
+                fontSize: 12.5,
+                color: 'var(--md-sys-color-primary)',
+                fontFamily: 'ui-monospace, monospace',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                wordBreak: 'break-all', gap: 8,
+              }}>
                 <span>{currentOrigin}/api/v1/voice/webhook</span>
                 <CopyButton text={`${currentOrigin}/api/v1/voice/webhook`} />
               </div>
@@ -171,13 +197,13 @@ export default function Settings() {
 
       <Section title="Быстрые действия">
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <a href={`${apiBase}/docs`} target="_blank" rel="noreferrer"
-            style={{ padding: '8px 14px', borderRadius: 8, background: '#0e2a42', border: '1px solid #1a3a5c', color: '#62b8f5', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>
-            📋 Swagger / API docs
+          <a href={`${apiBase}/docs`} target="_blank" rel="noreferrer" className="md3-btn-tonal" style={{ textDecoration: 'none' }}>
+            <span className="ic" aria-hidden>article</span>
+            Swagger / API docs
           </a>
-          <a href={`${apiBase}/redoc`} target="_blank" rel="noreferrer"
-            style={{ padding: '8px 14px', borderRadius: 8, background: '#0e2a42', border: '1px solid #1a3a5c', color: '#62b8f5', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>
-            🔄 ReDoc
+          <a href={`${apiBase}/redoc`} target="_blank" rel="noreferrer" className="md3-btn-tonal" style={{ textDecoration: 'none' }}>
+            <span className="ic" aria-hidden>sync_alt</span>
+            ReDoc
           </a>
         </div>
       </Section>

@@ -8,10 +8,11 @@ import type { Token, User } from '../api/types'
 export default function Login() {
   const navigate = useNavigate()
   const login    = useAuthStore((s) => s.login)
-  const [email, setEmail]       = useState('dboy@bk.ru')
+  const [email, setEmail]       = useState(() => localStorage.getItem('secureto.rememberedEmail') ?? 'dboy@bk.ru')
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
+  const [remember, setRemember] = useState(() => Boolean(localStorage.getItem('secureto.rememberedEmail')))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,6 +30,8 @@ export default function Login() {
       const { data: me } = await axios.get<User>('/api/v1/auth/me', {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },
       })
+      if (remember) localStorage.setItem('secureto.rememberedEmail', email)
+      else localStorage.removeItem('secureto.rememberedEmail')
       login(tokenData.access_token, me, tokenData.refresh_token)
       navigate('/dashboard')
 
@@ -41,7 +44,6 @@ export default function Login() {
         return
       }
 
-      // Backend unavailable (no connection or proxy error) — try demo mode
       if (isBackendDown(status)) {
         const user = demoLogin(email, password)
         if (user) {
@@ -59,47 +61,110 @@ export default function Login() {
     }
   }
 
-  const inputStyle = {
-    width: '100%', background: '#091624', border: '1px solid #1a2e42',
-    borderRadius: 8, color: '#c5d8ea', fontSize: 13, padding: '10px 14px',
-    outline: 'none', fontFamily: 'inherit',
-  } as const
-
   return (
-    <div style={{ height: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '40px 36px', width: 400 }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ width: 52, height: 52, background: 'var(--blue)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, margin: '0 auto 14px' }}>🛡</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: '#e8f1fa' }}>SecureTO</div>
-          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Система ТО охраны и СКУД · Ростелеком</div>
+    <div className="md3-login">
+      <aside className="md3-login__brand">
+        <div className="md3-login__lockup">
+          <span className="md3-login__shield" aria-hidden>shield</span>
+          SecureTO
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div>
-            <label style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="admin@example.com" style={inputStyle} />
+        <h1 className="md3-login__hero">
+          Техобслуживание охраны и СКУД — в одном окне
+        </h1>
+
+        <ul className="md3-login__features" aria-label="Возможности">
+          <li className="md3-login__feature">
+            <span className="ic" aria-hidden>verified</span>
+            Регламентные работы и журналы по объектам
+          </li>
+          <li className="md3-login__feature">
+            <span className="ic" aria-hidden>key</span>
+            Картотека ключей, считывателей и контроллеров
+          </li>
+          <li className="md3-login__feature">
+            <span className="ic" aria-hidden>notifications_active</span>
+            Заявки и уведомления в реальном времени
+          </li>
+        </ul>
+      </aside>
+
+      <main className="md3-login__form">
+        <form className="md3-login__form-inner" onSubmit={handleSubmit} noValidate>
+          <h2 className="md3-login__title">Вход</h2>
+          <p className="md3-login__sub">
+            Система ТО охраны и СКУД · Ростелеком
+          </p>
+
+          <div className={`md3-field ${error ? 'md3-field--error' : ''}`}>
+            <input
+              id="email"
+              className="md3-field__input"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <label htmlFor="email" className="md3-field__label">Email</label>
           </div>
-          <div>
-            <label style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>Пароль</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" style={inputStyle} />
+
+          <div className={`md3-field ${error ? 'md3-field--error' : ''}`}>
+            <input
+              id="password"
+              className="md3-field__input"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <label htmlFor="password" className="md3-field__label">Пароль</label>
+          </div>
+
+          <div className="md3-login__row">
+            <label className="md3-checkbox">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+              />
+              <span className="md3-checkbox__box" aria-hidden />
+              Запомнить меня
+            </label>
+            <a className="md3-login__meta" href="#" style={{ margin: 0 }}>
+              <span style={{ color: 'var(--md-sys-color-primary)', fontWeight: 600 }}>Забыли пароль?</span>
+            </a>
           </div>
 
           {error && (
-            <div style={{ fontSize: 12, color: 'var(--red)', background: 'var(--red-bg)', padding: '8px 12px', borderRadius: 6, lineHeight: 1.5 }}>
+            <div className="md3-login__error" role="alert">
               {error}
             </div>
           )}
 
-          <button type="submit" disabled={loading} style={{ background: loading ? '#1a2e42' : 'var(--blue)', color: loading ? 'var(--text-4)' : '#fff', border: 'none', borderRadius: 8, padding: 12, fontSize: 14, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.15s', marginTop: 4 }}>
+          <button type="submit" className="md3-btn-filled" disabled={loading}>
+            {loading && <span className="md3-spinner" aria-hidden />}
             {loading ? 'Вход…' : 'Войти в систему'}
           </button>
 
-          <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-4)', marginTop: 4 }}>
-            Нет аккаунта?{' '}
-            <Link to="/register" style={{ color: '#62b8f5', textDecoration: 'none' }}>Регистрация</Link>
+          <div className="md3-divider-label">или</div>
+
+          <button
+            type="button"
+            className="md3-btn-outlined"
+            onClick={() => alert('SSO Ростелеком — заглушка (интеграция OAuth ещё не подключена)')}
+          >
+            <span className="ic" aria-hidden>vpn_key</span>
+            Войти через SSO Ростелеком
+          </button>
+
+          <div className="md3-login__meta">
+            <span>Нет аккаунта?</span>
+            <Link to="/register">Регистрация</Link>
           </div>
         </form>
-      </div>
+      </main>
     </div>
   )
 }

@@ -4,7 +4,6 @@ import axios, { AxiosError } from 'axios'
 import { demoRegister, isBackendDown } from '../store/demoStore'
 import type { UserRole } from '../api/types'
 
-// Only roles that the backend allows to self-register (no admin needed)
 const ROLES: { value: UserRole; label: string }[] = [
   { value: 'TECHNICIAN', label: 'Монтажник / Техник' },
   { value: 'CUSTOMER',   label: 'Представитель заказчика' },
@@ -51,7 +50,6 @@ export default function Register() {
         return
       }
 
-      // Backend unavailable — use demo mode
       if (isBackendDown(status)) {
         const result = demoRegister({
           email:     form.email,
@@ -72,74 +70,112 @@ export default function Register() {
     }
   }
 
-  const inputStyle = {
-    width: '100%', background: '#091624', border: '1px solid #1a2e42',
-    borderRadius: 8, color: '#c5d8ea', fontSize: 13, padding: '10px 14px',
-    outline: 'none', fontFamily: 'inherit',
-  } as const
-
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
-      <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 14, padding: '36px 36px', width: 440 }}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ width: 44, height: 44, background: 'var(--blue)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, margin: '0 auto 12px' }}>🛡</div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#e8f1fa' }}>Регистрация</div>
-          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>SecureTO · Ростелеком</div>
+    <div className="md3-login">
+      <aside className="md3-login__brand">
+        <div className="md3-login__lockup">
+          <span className="md3-login__shield" aria-hidden>person_add</span>
+          SecureTO
         </div>
 
-        {success ? (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ fontSize: 36, marginBottom: 12 }}>✅</div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--green)', marginBottom: 6 }}>Аккаунт создан!</div>
-            <div style={{ fontSize: 12, color: 'var(--text-3)' }}>Перенаправление на страницу входа…</div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {([
-              ['email',     'Email',              'email',    'ivan@example.com'],
-              ['full_name', 'ФИО',                'text',     'Иванов Иван Иванович'],
-              ['phone',     'Телефон (необязат.)', 'tel',      '+7 (XXX) XXX-XX-XX'],
-            ] as [keyof typeof form, string, string, string][]).map(([key, label, type, placeholder]) => (
-              <div key={key}>
-                <label style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>{label}</label>
-                <input type={type} value={form[key]} onChange={set(key)} required={key !== 'phone'} placeholder={placeholder} style={inputStyle} />
-              </div>
-            ))}
+        <h1 className="md3-login__hero">Создайте учётную запись для работы в системе</h1>
 
-            <div>
-              <label style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>Роль</label>
-              <select value={form.role} onChange={set('role')} style={{ ...inputStyle, cursor: 'pointer' }}>
-                {ROLES.map((r) => <option key={r.value} value={r.value} style={{ background: '#0d1d2c' }}>{r.label}</option>)}
-              </select>
+        <ul className="md3-login__features" aria-label="Возможности">
+          <li className="md3-login__feature">
+            <span className="ic" aria-hidden>verified_user</span>
+            Доступ выдаётся по корпоративной почте
+          </li>
+          <li className="md3-login__feature">
+            <span className="ic" aria-hidden>admin_panel_settings</span>
+            Роль и права настраивает администратор
+          </li>
+          <li className="md3-login__feature">
+            <span className="ic" aria-hidden>support_agent</span>
+            Помощь — техподдержка Ростелеком
+          </li>
+        </ul>
+      </aside>
+
+      <main className="md3-login__form">
+        <form className="md3-login__form-inner" onSubmit={handleSubmit} noValidate style={{ maxWidth: 420 }}>
+          <h2 className="md3-login__title">Регистрация</h2>
+          <p className="md3-login__sub">SecureTO · Система ТО охраны и СКУД</p>
+
+          {success ? (
+            <div style={{ textAlign: 'center', padding: '24px 0' }}>
+              <span style={{
+                fontFamily: 'Material Symbols Rounded', fontSize: 56,
+                color: '#52C97E', fontVariationSettings: "'FILL' 1, 'wght' 500",
+                display: 'block', marginBottom: 12,
+              }}>check_circle</span>
+              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--md-sys-color-on-surface)', marginBottom: 6 }}>Аккаунт создан</div>
+              <div style={{ fontSize: 13, color: 'var(--md-sys-color-on-surface-variant)' }}>Перенаправление на страницу входа…</div>
             </div>
+          ) : (
+            <>
+              {([
+                ['email',     'Email',              'email'],
+                ['full_name', 'ФИО',                'text'],
+                ['phone',     'Телефон (необязательно)', 'tel'],
+              ] as [keyof typeof form, string, string][]).map(([key, label, type]) => (
+                <div key={key} className="md3-field">
+                  <input
+                    id={key}
+                    className="md3-field__input"
+                    type={type}
+                    required={key !== 'phone'}
+                    value={form[key]}
+                    onChange={set(key)}
+                  />
+                  <label htmlFor={key} className="md3-field__label">{label}</label>
+                </div>
+              ))}
 
-            {([
-              ['password', 'Пароль',          '••••••••'],
-              ['confirm',  'Повторите пароль', '••••••••'],
-            ] as [keyof typeof form, string, string][]).map(([key, label, placeholder]) => (
-              <div key={key}>
-                <label style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>{label}</label>
-                <input type="password" value={form[key]} onChange={set(key)} required placeholder={placeholder} style={inputStyle} />
+              <div className="md3-field">
+                <select
+                  id="role"
+                  className="md3-field__input"
+                  value={form.role}
+                  onChange={set('role')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                </select>
+                <label htmlFor="role" className="md3-field__label">Роль</label>
               </div>
-            ))}
 
-            {error && (
-              <div style={{ fontSize: 12, color: 'var(--red)', background: 'var(--red-bg)', padding: '8px 12px', borderRadius: 6, lineHeight: 1.5 }}>
-                {error}
+              {([
+                ['password', 'Пароль'],
+                ['confirm',  'Повторите пароль'],
+              ] as [keyof typeof form, string][]).map(([key, label]) => (
+                <div key={key} className="md3-field">
+                  <input
+                    id={key}
+                    className="md3-field__input"
+                    type="password"
+                    required
+                    value={form[key]}
+                    onChange={set(key)}
+                  />
+                  <label htmlFor={key} className="md3-field__label">{label}</label>
+                </div>
+              ))}
+
+              {error && <div className="md3-login__error" role="alert">{error}</div>}
+
+              <button type="submit" className="md3-btn-filled" disabled={loading}>
+                {loading && <span className="md3-spinner" aria-hidden />}
+                {loading ? 'Создание…' : 'Создать аккаунт'}
+              </button>
+
+              <div className="md3-login__meta">
+                <span>Уже есть аккаунт?</span>
+                <Link to="/login">Войти</Link>
               </div>
-            )}
-
-            <button type="submit" disabled={loading} style={{ background: loading ? '#1a2e42' : 'var(--blue)', color: loading ? 'var(--text-4)' : '#fff', border: 'none', borderRadius: 8, padding: 12, fontSize: 14, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.15s', marginTop: 4 }}>
-              {loading ? 'Создание…' : 'Создать аккаунт'}
-            </button>
-
-            <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-4)' }}>
-              Уже есть аккаунт?{' '}
-              <Link to="/login" style={{ color: '#62b8f5', textDecoration: 'none' }}>Войти</Link>
-            </div>
-          </form>
-        )}
-      </div>
+            </>
+          )}
+        </form>
+      </main>
     </div>
   )
 }

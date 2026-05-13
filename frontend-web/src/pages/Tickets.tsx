@@ -31,16 +31,23 @@ const STATUS_META: Record<string, [string, string, string]> = {
 }
 
 function PrioBadge({ p }: { p: string }) {
-  const [bg, color, label] = PRIORITY_META[p] ?? PRIORITY_META.normal
-  return <span style={{ background: bg, color, fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 4 }}>{label}</span>
+  const cls = p === 'critical' ? 'md3-status-chip--critical'
+            : p === 'high'     ? 'md3-status-chip--high'
+            : p === 'low'      ? 'md3-status-chip--success'
+            : 'md3-status-chip--normal'
+  const [, , label] = PRIORITY_META[p] ?? PRIORITY_META.normal
+  return <span className={`md3-status-chip ${cls}`}>{label}</span>
 }
 function SourceBadge({ s }: { s: string }) {
-  const [bg, color, label] = SOURCE_META[s] ?? SOURCE_META.manual
-  return <span style={{ background: bg, color, fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 4 }}>{label}</span>
+  const [, , label] = SOURCE_META[s] ?? SOURCE_META.manual
+  return <span className="md3-status-chip md3-status-chip--neutral">{label}</span>
 }
 function StatusBadge({ s }: { s: string }) {
-  const [bg, color, label] = STATUS_META[s] ?? STATUS_META.new
-  return <span style={{ background: bg, color, fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 4 }}>{label}</span>
+  const cls = s === 'resolved' || s === 'closed' ? 'md3-status-chip--success'
+            : s === 'callback_required'         ? 'md3-status-chip--high'
+            : 'md3-status-chip--normal'
+  const [, , label] = STATUS_META[s] ?? STATUS_META.new
+  return <span className={`md3-status-chip ${cls}`}>{label}</span>
 }
 
 function timeAgo(iso?: string) {
@@ -228,9 +235,9 @@ function TicketDetail({ ticket, technicians, onAssigned, onResolved, access }: {
   useEffect(() => { setSelTech(ticket?.assigned_to_id ?? ''); setShowResolve(false) }, [ticket?.id])
 
   if (!ticket) return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, color: '#2d4a62' }}>
-      <div style={{ fontSize: 40, opacity: 0.2 }}>🔧</div>
-      <div style={{ fontSize: 13 }}>Выберите заявку</div>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>
+      <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 56, opacity: 0.3 }}>build</span>
+      <div style={{ fontSize: 14 }}>Выберите заявку</div>
     </div>
   )
 
@@ -537,31 +544,63 @@ export default function Tickets() {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      {/* Topbar */}
-      <div style={{ height: 52, background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 14, flexShrink: 0 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-4)' }}>
-          <span style={{ color: '#4d7a9e' }}>Дашборд</span>
-          <span style={{ color: '#2a4460', margin: '0 4px' }}>›</span>
-          <span style={{ color: 'var(--text-1)' }}>Заявки</span>
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--red)' }}>
+      {/* Topbar — MD3 sub-header */}
+      <div style={{
+        height: 56,
+        background: 'var(--md-sys-color-surface)',
+        borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+        display: 'flex', alignItems: 'center', padding: '0 24px', gap: 14, flexShrink: 0,
+      }}>
+        <nav aria-label="breadcrumbs" style={{ fontSize: 13, color: 'var(--md-sys-color-on-surface-variant)' }}>
+          <span style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>Дашборд</span>
+          <span style={{ margin: '0 8px', color: 'var(--md-sys-color-outline)' }}>›</span>
+          <span style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 500 }}>Заявки</span>
+        </nav>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--md-sys-color-error)' }}>
           <div className="pulse-dot" />Онлайн {loading && '…'}
         </div>
         <div style={{ flex: 1 }} />
-        <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{openCount} заявок</span>
-        {access.canCreateTicket && <button className="topbar-btn btn-primary" onClick={() => setCreate(true)}>+ Новая заявка</button>}
+        <span style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>{openCount} заявок</span>
+        {access.canCreateTicket && (
+          <button className="md3-btn-tonal" onClick={() => setCreate(true)}>
+            <span className="ic" aria-hidden>add</span>
+            Новая заявка
+          </button>
+        )}
       </div>
 
-      {/* Tabs */}
-      <div style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', display: 'flex', padding: '0 16px', flexShrink: 0 }}>
+      {/* MD3 Primary Tabs */}
+      <div style={{
+        background: 'var(--md-sys-color-surface)',
+        borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+        display: 'flex', padding: '0 24px', flexShrink: 0,
+      }}>
         {[
-          { key: 'tickets',   icon: '🔧', label: 'Заявки',    count: openCount, red: true,  show: true },
-          { key: 'callbacks', icon: '📞', label: 'Перезвоны', count: 4,         red: false, show: access.canViewCallbacks },
-        ].filter(t => t.show).map(tab => (
-          <div key={tab.key} onClick={() => setPageTab(tab.key as 'tickets' | 'callbacks')} style={{ padding: '12px 18px', fontSize: 13, fontWeight: 500, color: pageTab === tab.key ? '#62b8f5' : 'var(--text-3)', cursor: 'pointer', borderBottom: `2px solid ${pageTab === tab.key ? 'var(--blue)' : 'transparent'}`, transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' as const }}>
-            {tab.icon} {tab.label} <span style={{ background: tab.red ? '#c0392b' : '#d97706', color: '#fff', fontSize: 10, fontWeight: 700, borderRadius: 9, padding: '1px 6px', minWidth: 18, textAlign: 'center' }}>{tab.count}</span>
-          </div>
-        ))}
+          { key: 'tickets',   icon: 'build',     label: 'Заявки',    count: openCount, red: true,  show: true },
+          { key: 'callbacks', icon: 'call',      label: 'Перезвоны', count: 4,         red: false, show: access.canViewCallbacks },
+        ].filter(t => t.show).map(tab => {
+          const isActive = pageTab === tab.key
+          return (
+            <div key={tab.key} onClick={() => setPageTab(tab.key as 'tickets' | 'callbacks')} style={{
+              padding: '14px 20px',
+              fontSize: 14,
+              fontWeight: isActive ? 600 : 500,
+              color: isActive ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-on-surface-variant)',
+              cursor: 'pointer',
+              borderBottom: `3px solid ${isActive ? 'var(--md-sys-color-primary)' : 'transparent'}`,
+              display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
+              transition: 'color .15s, border-color .15s',
+            }}>
+              <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 20, fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{tab.icon}</span>
+              {tab.label}
+              <span style={{
+                background: tab.red ? 'var(--md-sys-color-error)' : '#F0A830',
+                color: '#fff', fontSize: 11, fontWeight: 700,
+                borderRadius: 9999, padding: '2px 8px', minWidth: 20, textAlign: 'center',
+              }}>{tab.count}</span>
+            </div>
+          )
+        })}
       </div>
 
       {/* Content */}
@@ -569,23 +608,47 @@ export default function Tickets() {
         {pageTab === 'tickets' ? (
           <>
             {/* Feed */}
-            <div style={{ width: 400, minWidth: 340, display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border)', overflow: 'hidden' }}>
-              <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
-                <div style={{ display: 'flex', gap: 4 }}>
+            <div style={{ width: 400, minWidth: 340, display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--md-sys-color-outline-variant)', overflow: 'hidden', background: 'var(--md-sys-color-surface)' }}>
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--md-sys-color-outline-variant)', display: 'flex', flexDirection: 'column', gap: 12, flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {STATUS_TABS.map(st => (
-                    <div key={st.key} onClick={() => setStatus(st.key)} style={{ flex: 1, padding: '6px 4px', fontSize: 10.5, fontWeight: 600, textAlign: 'center', borderRadius: 6, cursor: 'pointer', color: statusFilter === st.key ? '#62b8f5' : 'var(--text-3)', background: statusFilter === st.key ? '#0e2a42' : 'transparent', border: `1px solid ${statusFilter === st.key ? '#1a7dbd44' : 'var(--border)'}`, whiteSpace: 'nowrap' as const }}>
+                    <span key={st.key} onClick={() => setStatus(st.key)}
+                      className={`md3-chip ${statusFilter === st.key ? 'md3-chip--selected' : ''}`}>
                       {st.label}
-                    </div>
+                    </span>
                   ))}
                 </div>
-                <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: '#2d4a62', fontSize: 12, pointerEvents: 'none' }}>🔍</span>
-                  <input className="filter-input" style={{ width: '100%', paddingLeft: 28 }} placeholder="Поиск по ID, описанию…" value={search} onChange={e => setSearch(e.target.value)} />
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  background: 'var(--md-sys-color-surface-container)',
+                  borderRadius: 9999,
+                  padding: '0 14px',
+                  height: 44,
+                }}>
+                  <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 20, color: 'var(--md-sys-color-on-surface-variant)' }}>search</span>
+                  <input
+                    placeholder="Поиск по ID, описанию…"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      color: 'var(--md-sys-color-on-surface)',
+                      font: '500 14px/20px var(--md-sys-typescale-font)',
+                    }}
+                  />
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--text-4)' }}>{filtered.length} заявок</div>
+                <div style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>{filtered.length} заявок</div>
               </div>
               <div style={{ flex: 1, overflowY: 'auto' }}>
-                {filtered.length === 0 && !loading && <div style={{ padding: 24, textAlign: 'center', color: '#2d4a62', fontSize: 12 }}>Заявок не найдено</div>}
+                {filtered.length === 0 && !loading && (
+                  <div style={{ padding: 40, textAlign: 'center', color: 'var(--md-sys-color-on-surface-variant)', fontSize: 13 }}>
+                    <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 40, opacity: .35, display: 'block', marginBottom: 8 }}>inbox</span>
+                    Заявок не найдено
+                  </div>
+                )}
                 {filtered.map(t => <TicketCard key={t.id} t={t} selected={selected?.id === t.id} onSelect={() => setSelected(t === selected ? null : t)} onOpen={() => navigate(`/tickets/${t.id}`)} />)}
               </div>
             </div>

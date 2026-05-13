@@ -291,33 +291,31 @@ export default function RoutesPage() {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Topbar */}
-      <div style={{ height: 52, background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 14, flexShrink: 0 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-4)' }}>
-          <span style={{ color: '#4d7a9e' }}>Дашборд</span>
-          <span style={{ color: '#2a4460', margin: '0 4px' }}>›</span>
-          <span style={{ color: 'var(--text-1)' }}>Маршруты</span>
-        </span>
+      <div style={{ height: 56, background: 'var(--md-sys-color-surface)', borderBottom: '1px solid var(--md-sys-color-outline-variant)', display: 'flex', alignItems: 'center', padding: '0 24px', gap: 14, flexShrink: 0 }}>
+        <nav aria-label="breadcrumbs" style={{ fontSize: 13, color: 'var(--md-sys-color-on-surface-variant)' }}>
+          <span style={{ cursor: 'pointer' }}>Дашборд</span>
+          <span style={{ margin: '0 8px', color: 'var(--md-sys-color-outline)' }}>›</span>
+          <span style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 500 }}>Маршруты</span>
+        </nav>
         <div style={{ flex: 1 }} />
 
         {/* Legend */}
         {showAll && allObjects.length > 0 && (
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', fontSize: 11, color: 'var(--text-3)' }}>
-            <span style={{ display: 'flex', alignItems: 'center' }}>{DOT('#22c55e')}{totalOk} свежих</span>
-            <span style={{ display: 'flex', alignItems: 'center' }}>{DOT('#f97316')}{totalWarn} просрочено</span>
-            <span style={{ display: 'flex', alignItems: 'center' }}>{DOT('#ef4444')}{totalDanger} давно/нет ТО</span>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center', fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>
+            <span style={{ display: 'flex', alignItems: 'center' }}>{DOT('#52C97E')}{totalOk} свежих</span>
+            <span style={{ display: 'flex', alignItems: 'center' }}>{DOT('#F0A830')}{totalWarn} просрочено</span>
+            <span style={{ display: 'flex', alignItems: 'center' }}>{DOT('var(--md-sys-color-error)')}{totalDanger} давно/нет ТО</span>
           </div>
         )}
 
-        <button
-          className="topbar-btn"
-          style={{ opacity: showAll ? 1 : 0.5 }}
-          onClick={() => setShowAll(v => !v)}
-        >
-          {showAll ? '🗺 Все объекты' : '🗺 Только маршрут'}
+        <button className="md3-chip" onClick={() => setShowAll(v => !v)}>
+          <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 16 }}>map</span>
+          {showAll ? 'Все объекты' : 'Только маршрут'}
         </button>
-        {plan && <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{plan.stops.length} точек</span>}
-        <button className="topbar-btn btn-primary" disabled={loading} onClick={build}>
-          {loading ? 'Расчёт...' : '▶ Построить'}
+        {plan && <span style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>{plan.stops.length} точек</span>}
+        <button className="md3-btn-tonal" disabled={loading} onClick={build}>
+          <span className="ic" aria-hidden>{loading ? 'hourglass' : 'play_arrow'}</span>
+          {loading ? 'Расчёт…' : 'Построить'}
         </button>
       </div>
 

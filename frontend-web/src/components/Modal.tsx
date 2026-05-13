@@ -28,26 +28,79 @@ export default function Modal({
   return (
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      style={{ position: 'fixed', inset: 0, background: '#000a', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.55)',
+        backdropFilter: 'blur(2px)',
+        zIndex: 1000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 16,
+        fontFamily: 'var(--md-sys-typescale-font)',
+      }}
     >
-      <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 12, width, maxWidth: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px #0008' }}>
+      <div style={{
+        background: 'var(--md-sys-color-surface-container-high)',
+        color: 'var(--md-sys-color-on-surface)',
+        borderRadius: 'var(--md-sys-shape-corner-extra-large)',
+        width, maxWidth: '100%', maxHeight: '90vh',
+        display: 'flex', flexDirection: 'column',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+        overflow: 'hidden',
+      }}>
         {/* Header */}
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: '#e8f1fa' }}>{title}</span>
-          <button onClick={onClose} style={{ width: 28, height: 28, background: '#112030', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-3)', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+        <div style={{
+          padding: '20px 24px 12px',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+          gap: 16, flexShrink: 0,
+        }}>
+          <span style={{
+            fontSize: 22, fontWeight: 500, lineHeight: '28px',
+            color: 'var(--md-sys-color-on-surface)',
+          }}>{title}</span>
+          <button onClick={onClose} className="md3-icon-btn" aria-label="Закрыть">
+            <span className="ic" aria-hidden>close</span>
+          </button>
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+        <div style={{
+          flex: 1, overflowY: 'auto', padding: '8px 24px 20px',
+          color: 'var(--md-sys-color-on-surface-variant)',
+          fontSize: 14, lineHeight: 1.5,
+        }}>
           {children}
         </div>
 
         {/* Footer */}
         {onConfirm && (
-          <div style={{ padding: '14px 20px', borderTop: '1px solid var(--border)', display: 'flex', gap: 10, justifyContent: 'flex-end', flexShrink: 0 }}>
-            <button onClick={onClose} style={{ padding: '8px 18px', borderRadius: 8, background: 'transparent', color: '#62b8f5', border: '1px solid #1a7dbd44', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Отмена</button>
+          <div style={{
+            padding: '12px 24px 20px',
+            display: 'flex', gap: 8, justifyContent: 'flex-end',
+            flexShrink: 0,
+          }}>
+            <button onClick={onClose} style={{
+              height: 40, padding: '0 18px',
+              borderRadius: 9999,
+              background: 'transparent',
+              color: 'var(--md-sys-color-primary)',
+              border: 'none',
+              font: '600 14px/20px var(--md-sys-typescale-font)',
+              cursor: 'pointer',
+            }}>Отмена</button>
             <button onClick={onConfirm} disabled={confirmLoading || confirmDisabled}
-              style={{ padding: '8px 18px', borderRadius: 8, background: confirmLoading || confirmDisabled ? '#1a2e42' : danger ? '#c0392b' : 'var(--blue)', color: confirmLoading || confirmDisabled ? 'var(--text-4)' : '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: confirmLoading || confirmDisabled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>
+              style={{
+                height: 40, padding: '0 22px',
+                borderRadius: 9999,
+                background: confirmLoading || confirmDisabled
+                  ? 'color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent)'
+                  : danger ? 'var(--md-sys-color-error)' : 'var(--md-sys-color-primary)',
+                color: confirmLoading || confirmDisabled
+                  ? 'color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent)'
+                  : danger ? '#fff' : 'var(--md-sys-color-on-primary)',
+                border: 'none',
+                font: '600 14px/20px var(--md-sys-typescale-font)',
+                cursor: confirmLoading || confirmDisabled ? 'not-allowed' : 'pointer',
+              }}>
               {confirmLoading ? 'Сохранение…' : confirmLabel}
             </button>
           </div>

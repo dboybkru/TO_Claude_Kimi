@@ -102,55 +102,75 @@ export default function Schedule() {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Topbar */}
-      <div style={{ height: 52, background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 14, flexShrink: 0 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-4)' }}>
-          <span style={{ color: '#4d7a9e' }}>Дашборд</span><span style={{ color: '#2a4460', margin: '0 4px' }}>›</span>
-          <span style={{ color: 'var(--text-1)' }}>Планировщик ТО</span>
-        </span>
+      <div style={{ height: 56, background: 'var(--md-sys-color-surface)', borderBottom: '1px solid var(--md-sys-color-outline-variant)', display: 'flex', alignItems: 'center', padding: '0 24px', gap: 14, flexShrink: 0 }}>
+        <nav aria-label="breadcrumbs" style={{ fontSize: 13, color: 'var(--md-sys-color-on-surface-variant)' }}>
+          <span style={{ cursor: 'pointer' }}>Дашборд</span>
+          <span style={{ margin: '0 8px', color: 'var(--md-sys-color-outline)' }}>›</span>
+          <span style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 500 }}>Планировщик ТО</span>
+        </nav>
         <div style={{ flex: 1 }} />
-        {loading && <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Загрузка…</span>}
-        {access.canExport && <button className="topbar-btn btn-outline" onClick={() => {
-          downloadCSV([
-            ['Объект', 'Монтажник', 'Дата ТО', 'Статус', 'Тип', 'Примечания'],
-            ...items.map(s => [
-              objectMap[s.object_id]?.name ?? s.object_id,
-              technicians.find(t => t.id === s.technician_id)?.full_name ?? '—',
-              new Date(s.scheduled_date).toLocaleDateString('ru-RU'),
-              STATUS_LABELS[s.status],
-              s.schedule_type === 'planned' ? 'Плановое' : 'Внеплановое',
-              s.notes ?? '',
-            ]),
-          ], `schedule_${MONTHS[month]}_${year}.csv`)
-        }}>⬇ Экспорт плана</button>}
-        {access.canCreateSchedule && <button className="topbar-btn btn-primary" onClick={() => setCreate(true)}>+ Добавить</button>}
+        {loading && <span style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>Загрузка…</span>}
+        {access.canExport && (
+          <button className="md3-chip" onClick={() => {
+            downloadCSV([
+              ['Объект', 'Монтажник', 'Дата ТО', 'Статус', 'Тип', 'Примечания'],
+              ...items.map(s => [
+                objectMap[s.object_id]?.name ?? s.object_id,
+                technicians.find(t => t.id === s.technician_id)?.full_name ?? '—',
+                new Date(s.scheduled_date).toLocaleDateString('ru-RU'),
+                STATUS_LABELS[s.status],
+                s.schedule_type === 'planned' ? 'Плановое' : 'Внеплановое',
+                s.notes ?? '',
+              ]),
+            ], `schedule_${MONTHS[month]}_${year}.csv`)
+          }}>
+            <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 16 }}>download</span>
+            Экспорт плана
+          </button>
+        )}
+        {access.canCreateSchedule && (
+          <button className="md3-btn-tonal" onClick={() => setCreate(true)}>
+            <span className="ic" aria-hidden>add</span>
+            Добавить
+          </button>
+        )}
       </div>
 
       {/* Summary strip */}
-      <div style={{ padding: '10px 20px', background: '#0b1825', borderBottom: '1px solid var(--border)', display: 'flex', gap: 20, alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' as const }}>
+      <div style={{
+        padding: '14px 24px',
+        background: 'var(--md-sys-color-surface-container-low)',
+        borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+        display: 'flex', gap: 20, alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' as const,
+      }}>
         {/* Month nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={prevMonth} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-mid)', borderRadius: 6, color: 'var(--text-3)', cursor: 'pointer', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>◀</button>
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', minWidth: 140, textAlign: 'center' }}>{MONTHS[month]} {year}</span>
-          <button onClick={nextMonth} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-mid)', borderRadius: 6, color: 'var(--text-3)', cursor: 'pointer', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▶</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button className="md3-icon-btn" onClick={prevMonth} aria-label="Предыдущий месяц">
+            <span className="ic" aria-hidden>chevron_left</span>
+          </button>
+          <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--md-sys-color-on-surface)', minWidth: 150, textAlign: 'center' }}>{MONTHS[month]} {year}</span>
+          <button className="md3-icon-btn" onClick={nextMonth} aria-label="Следующий месяц">
+            <span className="ic" aria-hidden>chevron_right</span>
+          </button>
         </div>
-        <div style={{ height: 24, width: 1, background: 'var(--border)' }} />
-        <div style={{ display: 'flex', gap: 20, fontSize: 12 }}>
-          <span style={{ color: 'var(--text-3)' }}>Всего: <span style={{ color: '#62b8f5', fontWeight: 600 }}>{total}</span></span>
-          <span style={{ color: 'var(--text-3)' }}>Выполнено: <span style={{ color: 'var(--green)', fontWeight: 600 }}>{done}</span></span>
-          <span style={{ color: 'var(--text-3)' }}>Просрочено: <span style={{ color: 'var(--red)', fontWeight: 600 }}>{overdue}</span></span>
-          {total > 0 && <span style={{ color: 'var(--text-3)' }}>Прогресс: <span style={{ color: 'var(--orange)', fontWeight: 600 }}>{Math.round(done / total * 100)}%</span></span>}
+        <div style={{ height: 24, width: 1, background: 'var(--md-sys-color-outline-variant)' }} />
+        <div style={{ display: 'flex', gap: 18, fontSize: 13 }}>
+          <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Всего: <span style={{ color: 'var(--md-sys-color-primary)', fontWeight: 600 }}>{total}</span></span>
+          <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Выполнено: <span style={{ color: '#52C97E', fontWeight: 600 }}>{done}</span></span>
+          <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Просрочено: <span style={{ color: 'var(--md-sys-color-error)', fontWeight: 600 }}>{overdue}</span></span>
+          {total > 0 && <span style={{ color: 'var(--md-sys-color-on-surface-variant)' }}>Прогресс: <span style={{ color: '#F0A830', fontWeight: 600 }}>{Math.round(done / total * 100)}%</span></span>}
         </div>
         {/* Filters */}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
           <select value={filterTech} onChange={e => setFilterTech(e.target.value)}
-            style={{ background: 'var(--bg-input)', border: '1px solid var(--border-mid)', borderRadius: 7, color: '#8aacbf', fontSize: 12, padding: '6px 10px', outline: 'none', fontFamily: 'inherit' }}>
+            style={{ background: 'var(--md-sys-color-surface-container)', border: '1px solid var(--md-sys-color-outline)', borderRadius: 'var(--md-sys-shape-corner-extra-small)', color: 'var(--md-sys-color-on-surface)', fontSize: 13, padding: '8px 12px', outline: 'none', fontFamily: 'inherit', cursor: 'pointer' }}>
             <option value="">Все монтажники</option>
-            {technicians.map(t => <option key={t.id} value={t.id} style={{ background: 'var(--bg-panel)' }}>{t.full_name}</option>)}
+            {technicians.map(t => <option key={t.id} value={t.id}>{t.full_name}</option>)}
           </select>
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-            style={{ background: 'var(--bg-input)', border: '1px solid var(--border-mid)', borderRadius: 7, color: '#8aacbf', fontSize: 12, padding: '6px 10px', outline: 'none', fontFamily: 'inherit' }}>
+            style={{ background: 'var(--md-sys-color-surface-container)', border: '1px solid var(--md-sys-color-outline)', borderRadius: 'var(--md-sys-shape-corner-extra-small)', color: 'var(--md-sys-color-on-surface)', fontSize: 13, padding: '8px 12px', outline: 'none', fontFamily: 'inherit', cursor: 'pointer' }}>
             <option value="all">Все статусы</option>
-            {Object.entries(STATUS_LABELS).map(([v, l]) => <option key={v} value={v} style={{ background: 'var(--bg-panel)' }}>{l}</option>)}
+            {Object.entries(STATUS_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
         </div>
       </div>

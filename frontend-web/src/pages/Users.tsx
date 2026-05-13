@@ -166,28 +166,42 @@ export default function Users() {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Topbar */}
-      <div style={{ height: 52, background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 14, flexShrink: 0 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-4)' }}>
-          <span style={{ color: '#4d7a9e' }}>Дашборд</span>
-          <span style={{ color: '#2a4460', margin: '0 4px' }}>›</span>
-          <span style={{ color: 'var(--text-1)' }}>Пользователи</span>
-        </span>
+      <div style={{ height: 56, background: 'var(--md-sys-color-surface)', borderBottom: '1px solid var(--md-sys-color-outline-variant)', display: 'flex', alignItems: 'center', padding: '0 24px', gap: 14, flexShrink: 0 }}>
+        <nav aria-label="breadcrumbs" style={{ fontSize: 13, color: 'var(--md-sys-color-on-surface-variant)' }}>
+          <span style={{ cursor: 'pointer' }}>Дашборд</span>
+          <span style={{ margin: '0 8px', color: 'var(--md-sys-color-outline)' }}>›</span>
+          <span style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 500 }}>Пользователи</span>
+        </nav>
         <div style={{ flex: 1 }} />
-        {loading && <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Загрузка…</span>}
-        <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{filtered.length} из {items.length}</span>
-        {isAdmin && <button className="topbar-btn btn-primary" onClick={() => setCreate(true)}>+ Пользователь</button>}
+        {loading && <span style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>Загрузка…</span>}
+        <span style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>{filtered.length} из {items.length}</span>
+        {isAdmin && (
+          <button className="md3-btn-tonal" onClick={() => setCreate(true)}>
+            <span className="ic" aria-hidden>person_add</span>
+            Пользователь
+          </button>
+        )}
       </div>
 
       {/* Filters */}
-      <div style={{ padding: '10px 16px', background: '#0b1825', borderBottom: '1px solid var(--border)', display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative' }}>
-          <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#2d4a62', fontSize: 13, pointerEvents: 'none' }}>🔍</span>
-          <input className="filter-input" style={{ paddingLeft: 32, width: 240 }} placeholder="Поиск по имени, email…" value={search} onChange={e => setSearch(e.target.value)} />
+      <div style={{ padding: '14px 24px', background: 'var(--md-sys-color-surface-container-low)', borderBottom: '1px solid var(--md-sys-color-outline-variant)', display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: 'var(--md-sys-color-surface-container)',
+          borderRadius: 9999, padding: '0 14px', height: 40, width: 280,
+        }}>
+          <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 20, color: 'var(--md-sys-color-on-surface-variant)' }}>search</span>
+          <input
+            placeholder="Поиск по имени, email…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--md-sys-color-on-surface)', font: '500 13px/18px var(--md-sys-typescale-font)' }}
+          />
         </div>
         <select value={filterRole} onChange={e => setRole(e.target.value)}
-          style={{ background: 'var(--bg-input)', border: '1px solid var(--border-mid)', borderRadius: 7, color: '#8aacbf', fontSize: 12, padding: '7px 10px', outline: 'none', fontFamily: 'inherit' }}>
+          style={{ background: 'var(--md-sys-color-surface-container)', border: '1px solid var(--md-sys-color-outline)', borderRadius: 'var(--md-sys-shape-corner-extra-small)', color: 'var(--md-sys-color-on-surface)', fontSize: 13, padding: '8px 12px', outline: 'none', fontFamily: 'inherit', cursor: 'pointer' }}>
           <option value="all">Все роли</option>
-          {ROLES.map(r => <option key={r} value={r} style={{ background: 'var(--bg-panel)' }}>{ROLE_LABELS[r]} ({grouped[r] ?? 0})</option>)}
+          {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r]} ({grouped[r] ?? 0})</option>)}
         </select>
       </div>
 
@@ -250,8 +264,9 @@ export default function Users() {
                     </td>
                     <td style={{ padding: '11px 14px', borderBottom: '1px solid var(--border-inner)' }}>
                       {isAdmin && (
-                        <button onClick={() => setEdit(u)} style={{ background: 'var(--bg-input)', border: '1px solid var(--border-mid)', borderRadius: 6, color: '#62b8f5', fontSize: 11, padding: '4px 10px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                          ✏ Изменить
+                        <button onClick={() => setEdit(u)} className="md3-chip">
+                          <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 16 }}>edit</span>
+                          Изменить
                         </button>
                       )}
                     </td>

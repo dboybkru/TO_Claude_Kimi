@@ -33,34 +33,40 @@ function ProgressBar({ pct, color }: { pct: number; color: string }) {
 }
 
 function PriorityBadge({ p }: { p: string }) {
-  const m: Record<string, [string, string]> = {
-    critical: ['var(--red-bg)',    'var(--red)'],
-    high:     ['var(--orange-bg)', 'var(--orange)'],
-    medium:   ['#0d2040',          '#62b8f5'],
-  }
-  const [bg, color] = m[p] ?? m.medium
-  const labels: Record<string, string> = { critical: 'КРИТИЧНО', high: 'ВЫСОКИЙ', medium: 'СРЕДНИЙ', normal: 'СРЕДНИЙ', low: 'НИЗКИЙ' }
-  return <span style={{ background: bg, color, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 4 }}>{labels[p] ?? p.toUpperCase()}</span>
+  const cls = p === 'critical' ? 'md3-status-chip--critical'
+            : p === 'high'     ? 'md3-status-chip--high'
+            : 'md3-status-chip--normal'
+  const labels: Record<string, string> = { critical: 'Критично', high: 'Высокий', medium: 'Средний', normal: 'Средний', low: 'Низкий' }
+  return <span className={`md3-status-chip ${cls}`}>{labels[p] ?? p}</span>
 }
 
 function StatusChip({ status }: { status: string }) {
-  if (status === 'overdue') return <span className="chip chip-red"><span className="chip-dot" style={{ background: 'var(--red)' }} />Просрочено</span>
-  if (status === 'warn' || status === 'in_repair') return <span className="chip chip-orange"><span className="chip-dot" style={{ background: 'var(--orange)' }} />Скоро ТО</span>
-  return <span className="chip chip-green"><span className="chip-dot" style={{ background: 'var(--green)' }} />В норме</span>
+  if (status === 'overdue')  return <span className="md3-status-chip md3-status-chip--critical"><span className="md3-status-chip__dot" />Просрочено</span>
+  if (status === 'warn' || status === 'in_repair')
+                              return <span className="md3-status-chip md3-status-chip--high"><span className="md3-status-chip__dot" />Скоро ТО</span>
+  return <span className="md3-status-chip md3-status-chip--success"><span className="md3-status-chip__dot" />В норме</span>
 }
 
 // ── Metric Cards ─────────────────────────────────────────────────────────────
 
-function MetricCard({ label, value, sub, accent, icon }: {
-  label: string; value: string | number; sub: React.ReactNode; accent: string; icon: string
+type MetricTone = 'primary' | 'success' | 'warning' | 'danger'
+
+function MetricCard({ label, value, sub, tone, icon }: {
+  label: string; value: string | number; sub: React.ReactNode; tone: MetricTone; icon: string
 }) {
+  const toneCls = tone === 'success' ? 'md3-metric--success'
+                : tone === 'warning' ? 'md3-metric--warning'
+                : tone === 'danger'  ? 'md3-metric--danger'
+                : ''
   return (
-    <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 4, position: 'relative', overflow: 'hidden', flex: 1 }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: accent }} />
-      <div style={{ position: 'absolute', right: 14, top: 14, fontSize: 22, opacity: 0.12 }}>{icon}</div>
-      <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: 32, fontWeight: 700, color: accent, lineHeight: 1.1 }}>{value}</div>
-      <div style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>{sub}</div>
+    <div className={`md3-metric ${toneCls}`}>
+      <span className="md3-metric__top-accent" aria-hidden />
+      <div className="md3-metric__row">
+        <div className="md3-metric__label">{label}</div>
+        <div className="md3-metric__ic" aria-hidden>{icon}</div>
+      </div>
+      <div className="md3-metric__value">{value}</div>
+      <div className="md3-metric__sub">{sub}</div>
     </div>
   )
 }
@@ -86,36 +92,52 @@ function TicketsFeed({ tickets, loading }: { tickets: RepairTicket[] | null; loa
   }
 
   return (
-    <div className="panel" style={{ flex: 1, minHeight: 0 }}>
-      <div className="panel-header">
-        <div className="panel-title">
+    <div className="md3-card" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      <div className="md3-card__header">
+        <div className="md3-card__title">
           <span className="pulse-dot" /> Критичные заявки
-          {loading && <span style={{ fontSize: 10, color: 'var(--text-4)' }}>…</span>}
+          {loading && <span style={{ fontSize: 11, color: 'var(--md-sys-color-on-surface-variant)' }}>…</span>}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {(['all', 'critical', 'high'] as const).map((f) => (
-            <span key={f} onClick={() => setFilter(f)} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 4, cursor: 'pointer', background: filter === f ? '#1a3a5c' : 'transparent', color: filter === f ? '#62b8f5' : 'var(--text-4)', border: `1px solid ${filter === f ? '#1a7dbd44' : 'var(--border)'}` }}>
+            <span key={f} onClick={() => setFilter(f)} className={`md3-chip ${filter === f ? 'md3-chip--selected' : ''}`}>
               {f === 'all' ? 'Все' : f === 'critical' ? 'Критичные' : 'Высокие'}
             </span>
           ))}
-          <span className="panel-action" onClick={() => navigate('/tickets')}>Все заявки →</span>
+          <span className="md3-card__action" onClick={() => navigate('/tickets')}>Все заявки →</span>
         </div>
       </div>
-      <div className="panel-body">
-        {filtered.map((t) => (
-          <div key={t.id} onClick={() => setSelected(t.id === selected ? null : t.id)}
-            style={{ background: selected === t.id ? '#0c1e2e' : 'var(--bg-card)', border: `1px solid ${selected === t.id ? '#1a7dbd88' : 'var(--border-mid)'}`, borderLeft: `3px solid ${priorityOf(t) === 'critical' ? 'var(--red)' : priorityOf(t) === 'high' ? 'var(--orange)' : 'var(--blue)'}`, borderRadius: 8, padding: '10px 12px', marginBottom: 8, cursor: 'pointer', transition: 'all 0.15s' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
-              <span style={{ fontSize: 10, color: 'var(--text-4)', fontFamily: 'monospace' }}>{t.ticket_number ?? (t as unknown as {id: string}).id}</span>
-              <PriorityBadge p={priorityOf(t)} />
+      <div style={{ padding: 12, flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {filtered.map((t) => {
+          const accent = priorityOf(t) === 'critical' ? 'var(--md-sys-color-error)'
+                       : priorityOf(t) === 'high'     ? '#F0A830'
+                       : 'var(--md-sys-color-primary)'
+          const isSel = selected === t.id
+          return (
+            <div key={t.id} onClick={() => setSelected(t.id === selected ? null : t.id)}
+              style={{
+                background: isSel ? 'var(--md-sys-color-surface-container-high)' : 'var(--md-sys-color-surface-container-low)',
+                borderRadius: 'var(--md-sys-shape-corner-medium)',
+                borderLeft: `4px solid ${accent}`,
+                padding: '12px 14px',
+                cursor: 'pointer',
+                transition: 'background .15s',
+              }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                <span style={{ fontSize: 11, color: 'var(--md-sys-color-on-surface-variant)', fontFamily: 'ui-monospace, monospace' }}>{t.ticket_number ?? (t as unknown as {id: string}).id}</span>
+                <PriorityBadge p={priorityOf(t)} />
+              </div>
+              <div style={{ fontSize: 13.5, color: 'var(--md-sys-color-on-surface)', fontWeight: 500, marginBottom: 6 }}>{titleOf(t)}</div>
+              <div style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)', display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span className="material-symbols-rounded" style={{ fontFamily: 'Material Symbols Rounded', fontSize: 16, verticalAlign: 'middle' }}>location_on</span>
+                  {(t as unknown as {address?: string}).address ?? t.object_id ?? '—'}
+                </span>
+                <span>{timeOf(t)}</span>
+              </div>
             </div>
-            <div style={{ fontSize: 12.5, color: 'var(--text-1)', fontWeight: 500, marginBottom: 4 }}>{titleOf(t)}</div>
-            <div style={{ fontSize: 11, color: 'var(--text-3)' }}>
-              📍 {(t as unknown as {address?: string}).address ?? t.object_id ?? '—'}
-              <span style={{ float: 'right', color: 'var(--text-4)' }}>{timeOf(t)}</span>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -133,27 +155,30 @@ function DistrictsPanel({ districts, loading }: { districts: DistrictStat[] | nu
     { name: 'Восточный',   done: 6,  pending: 4, total: 10, overdue: 1 },
   ]
   return (
-    <div className="panel" style={{ width: 340, minWidth: 300 }}>
-      <div className="panel-header">
-        <div className="panel-title">📍 ТО по районам {loading && <span style={{ fontSize: 10, color: 'var(--text-4)' }}>…</span>}</div>
-        <span className="panel-action">{now.toLocaleString('ru-RU', { month: 'long', year: 'numeric' })}</span>
+    <div className="md3-card" style={{ width: 340, minWidth: 300, display: 'flex', flexDirection: 'column' }}>
+      <div className="md3-card__header">
+        <div className="md3-card__title">
+          <span className="ic-inline" style={{ fontFamily: 'Material Symbols Rounded', fontSize: 18 }}>map</span>
+          ТО по районам {loading && <span style={{ fontSize: 11, color: 'var(--md-sys-color-on-surface-variant)' }}>…</span>}
+        </div>
+        <span className="md3-card__action">{now.toLocaleString('ru-RU', { month: 'long', year: 'numeric' })}</span>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {items.map((d) => {
           const pct = d.total > 0 ? Math.round((d.done / d.total) * 100) : 0
           const color = pct >= 80 ? 'green' : pct >= 50 ? 'blue' : d.overdue > 0 ? 'red' : 'yellow'
           return (
             <div key={d.name}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <span style={{ fontSize: 12.5, color: '#a0bdd0' }}>{d.name}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 13.5, color: 'var(--md-sys-color-on-surface)', fontWeight: 500 }}>{d.name}</span>
                 <div style={{ display: 'flex', gap: 12, fontSize: 11 }}>
-                  <span style={{ color: 'var(--green)', fontWeight: 600 }}>{d.done} вып</span>
-                  <span style={{ color: 'var(--orange)', fontWeight: 600 }}>{d.pending} ожид</span>
-                  <span style={{ color: '#62b8f5', fontWeight: 600 }}>{pct}%</span>
+                  <span style={{ color: '#52C97E', fontWeight: 600 }}>{d.done} вып</span>
+                  <span style={{ color: '#F0A830', fontWeight: 600 }}>{d.pending} ожид</span>
+                  <span style={{ color: 'var(--md-sys-color-primary)', fontWeight: 600 }}>{pct}%</span>
                 </div>
               </div>
               <ProgressBar pct={pct} color={color} />
-              {d.overdue > 0 && <div style={{ fontSize: 10, color: 'var(--red)', marginTop: 3 }}>⚠ Просрочено: {d.overdue}</div>}
+              {d.overdue > 0 && <div style={{ fontSize: 11, color: 'var(--md-sys-color-error)', marginTop: 4 }}>⚠ Просрочено: {d.overdue}</div>}
             </div>
           )
         })}
@@ -178,10 +203,13 @@ function ObjectsTable({ objects, loading }: { objects: ObjectItem[] | null; load
   const rows: Row[] = objects && objects.length > 0 ? objects as Row[] : MOCK_OBJECTS
 
   return (
-    <div className="panel" style={{ flex: 1, minWidth: 0 }}>
-      <div className="panel-header">
-        <div className="panel-title">🏢 Объекты с нарушениями {loading && <span style={{ fontSize: 10, color: 'var(--text-4)' }}>…</span>}</div>
-        <span className="panel-action" onClick={() => navigate('/objects')}>Показать все →</span>
+    <div className="md3-card" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+      <div className="md3-card__header">
+        <div className="md3-card__title">
+          <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 18 }}>apartment</span>
+          Объекты с нарушениями {loading && <span style={{ fontSize: 11, color: 'var(--md-sys-color-on-surface-variant)' }}>…</span>}
+        </div>
+        <span className="md3-card__action" onClick={() => navigate('/objects')}>Показать все →</span>
       </div>
       <div style={{ overflowX: 'auto', flex: 1 }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -368,16 +396,16 @@ export default function Dashboard() {
   const activeTechs = (technicians ?? []).filter(t => t.total > 0).length
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div className="md3-page">
       {/* Metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, flexShrink: 0 }}>
-        <MetricCard label="Всего объектов" value={s.total_objects} icon="🏢" accent="var(--blue)"
-          sub={<>Активных: <span style={{ color: 'var(--green)' }}>{s.active_objects}</span></>} />
-        <MetricCard label="ТО выполнено в месяце" value={s.maintenance_done_this_month} icon="✅" accent="#27ae60"
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, flexShrink: 0 }}>
+        <MetricCard label="Всего объектов" value={s.total_objects} icon="apartment" tone="primary"
+          sub={<>Активных: <span style={{ color: '#52C97E' }}>{s.active_objects}</span></>} />
+        <MetricCard label="ТО выполнено в месяце" value={s.maintenance_done_this_month} icon="task_alt" tone="success"
           sub={`из ${s.maintenance_planned_this_month} запланировано`} />
-        <MetricCard label="Просрочено ТО" value={s.overdue_count} icon="⚠" accent="#c0392b"
+        <MetricCard label="Просрочено ТО" value={s.overdue_count} icon="warning" tone="danger"
           sub="объектов без обслуживания" />
-        <MetricCard label="Открытые заявки" value={s.open_tickets} icon="🔧" accent="#d97706"
+        <MetricCard label="Открытые заявки" value={s.open_tickets} icon="build" tone="warning"
           sub={`${s.critical_tickets} критичных, ${s.high_tickets} высоких`} />
       </div>
 
@@ -390,14 +418,17 @@ export default function Dashboard() {
       {/* Bottom */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 12, flexShrink: 0 }}>
         <ObjectsTable objects={objects} loading={objectsLoading} />
-        <div className="panel" style={{ width: 320, minWidth: 280 }}>
-          <div className="panel-header">
-            <div className="panel-title">👷 Монтажники — месяц {techsLoading && <span style={{ fontSize: 10, color: 'var(--text-4)' }}>…</span>}</div>
-            <span className="panel-action">{activeTechs} с задачами</span>
+        <div className="md3-card" style={{ width: 320, minWidth: 280, display: 'flex', flexDirection: 'column' }}>
+          <div className="md3-card__header">
+            <div className="md3-card__title">
+              <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 18 }}>engineering</span>
+              Монтажники — месяц {techsLoading && <span style={{ fontSize: 11, color: 'var(--md-sys-color-on-surface-variant)' }}>…</span>}
+            </div>
+            <span className="md3-card__action">{activeTechs} с задачами</span>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 12px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '10px 14px' }}>
             {(technicians ?? []).length === 0 && !techsLoading && (
-              <div style={{ padding: 16, textAlign: 'center', color: 'var(--text-4)', fontSize: 12 }}>Нет данных</div>
+              <div style={{ padding: 16, textAlign: 'center', color: 'var(--md-sys-color-on-surface-variant)', fontSize: 13 }}>Нет данных</div>
             )}
             {(technicians ?? []).map(t => <TechCard key={t.id} tech={t} />)}
           </div>
@@ -435,33 +466,49 @@ function AiDigestPanel() {
   const timeStr = generatedAt ? new Date(generatedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : ''
 
   return (
-    <div style={{ background: 'var(--bg-panel)', border: '1px solid #1a3a5c', borderRadius: 10, overflow: 'hidden', flexShrink: 0 }}>
+    <div className="md3-card" style={{ flexShrink: 0 }}>
       <div onClick={() => digest && setExpanded(e => !e)}
-        style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 12, cursor: digest ? 'pointer' : 'default', background: 'linear-gradient(90deg,#0a1f30,#0e1f2e)' }}>
-        <span style={{ fontSize: 20 }}>🤖</span>
+        style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 14, cursor: digest ? 'pointer' : 'default' }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: 'var(--md-sys-shape-corner-medium)',
+          background: 'var(--md-sys-color-primary-container)', color: 'var(--md-sys-color-on-primary-container)',
+          display: 'grid', placeItems: 'center',
+          fontFamily: 'Material Symbols Rounded', fontSize: 22, fontVariationSettings: "'FILL' 1, 'wght' 500",
+        }}>smart_toy</div>
         <div style={{ flex: 1 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#62b8f5' }}>AI Дайджест дня</span>
-          {timeStr && <span style={{ fontSize: 10, color: 'var(--text-4)', marginLeft: 10 }}>обновлён в {timeStr}</span>}
-          {!digest && <div style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>Сводка по всем объектам, рискам и просрочкам</div>}
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--md-sys-color-on-surface)' }}>
+            AI Дайджест дня
+            {timeStr && <span style={{ fontSize: 11, color: 'var(--md-sys-color-on-surface-variant)', marginLeft: 10, fontWeight: 400 }}>обновлён в {timeStr}</span>}
+          </div>
+          {!digest && <div style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)', marginTop: 2 }}>Сводка по всем объектам, рискам и просрочкам</div>}
         </div>
         {!digest && (
-          <button disabled={loading} onClick={e => { e.stopPropagation(); generate() }}
-            style={{ padding: '7px 16px', borderRadius: 8, background: loading ? '#1a2e42' : 'var(--blue)', color: loading ? 'var(--text-4)' : '#fff', border: 'none', fontSize: 12, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
-            {loading ? '🤖 Анализирую…' : '▶ Сформировать'}
+          <button className="md3-btn-tonal" disabled={loading} onClick={e => { e.stopPropagation(); generate() }}>
+            <span className="ic" aria-hidden>{loading ? 'hourglass' : 'play_arrow'}</span>
+            {loading ? 'Анализирую…' : 'Сформировать'}
           </button>
         )}
         {digest && (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={e => { e.stopPropagation(); generate() }} disabled={loading}
-              style={{ padding: '4px 9px', borderRadius: 5, background: 'transparent', border: '1px solid #1a3a5c', color: 'var(--text-4)', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
-              {loading ? '⏳' : '↻'}
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <button className="md3-icon-btn" onClick={e => { e.stopPropagation(); generate() }} disabled={loading} title="Обновить">
+              <span className="ic" aria-hidden>{loading ? 'hourglass' : 'refresh'}</span>
             </button>
-            <span style={{ fontSize: 12, color: 'var(--text-4)', alignSelf: 'center' }}>{expanded ? '▲' : '▼'}</span>
+            <button className="md3-icon-btn" title={expanded ? 'Свернуть' : 'Развернуть'}>
+              <span className="ic" aria-hidden>{expanded ? 'expand_less' : 'expand_more'}</span>
+            </button>
           </div>
         )}
       </div>
       {expanded && digest && (
-        <div style={{ padding: '16px 18px', fontSize: 13, color: 'var(--text-2)', lineHeight: 1.75, whiteSpace: 'pre-line', borderTop: '1px solid #1a3a5c', background: '#091624', maxHeight: 400, overflowY: 'auto' }}>
+        <div style={{
+          padding: '16px 20px',
+          fontSize: 13.5, lineHeight: 1.75,
+          color: 'var(--md-sys-color-on-surface-variant)',
+          whiteSpace: 'pre-line',
+          borderTop: '1px solid var(--md-sys-color-outline-variant)',
+          background: 'var(--md-sys-color-surface-container-low)',
+          maxHeight: 400, overflowY: 'auto',
+        }}>
           {digest}
         </div>
       )}

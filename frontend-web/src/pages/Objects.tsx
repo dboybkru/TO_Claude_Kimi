@@ -277,22 +277,45 @@ function DetailPanel({ obj, onClose, onCreateJournal, onCreateTicket, onEdit, ac
   if (!obj) return null
   const s = obj.status ?? 'active'
   return (
-    <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 320, background: 'var(--bg-sidebar)', borderLeft: '1px solid var(--border)', display: 'flex', flexDirection: 'column', overflow: 'hidden', zIndex: 20, boxShadow: '-8px 0 32px #000a' }}>
-      <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg-panel)', flexShrink: 0 }}>
+    <div style={{
+      position: 'absolute', right: 0, top: 0, bottom: 0, width: 340,
+      background: 'var(--md-sys-color-surface-container-low)',
+      borderLeft: '1px solid var(--md-sys-color-outline-variant)',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      zIndex: 20,
+      boxShadow: '-8px 0 32px rgba(0,0,0,0.4)',
+      fontFamily: 'var(--md-sys-typescale-font)',
+    }}>
+      <div style={{
+        padding: '16px 18px',
+        borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+        flexShrink: 0,
+      }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 10, color: 'var(--text-4)', fontFamily: 'monospace', marginBottom: 3 }}>{obj.id?.slice(0, 8)} · {TYPE_LABELS[obj.type ?? 'OS']} · {obj.region}</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#e8f1fa', lineHeight: 1.3 }}>{obj.name}</div>
-            <div style={{ marginTop: 6 }}>
-              <span className={`chip ${STATUS_CHIP[s]}`}><span className="chip-dot" style={{ background: markerColor(s) }} />{STATUS_LABELS[s]}</span>
+            <div style={{ fontSize: 11, color: 'var(--md-sys-color-on-surface-variant)', fontFamily: 'ui-monospace, monospace', marginBottom: 4 }}>
+              {obj.id?.slice(0, 8)} · {TYPE_LABELS[obj.type ?? 'OS']} · {obj.region}
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--md-sys-color-on-surface)', lineHeight: '24px' }}>{obj.name}</div>
+            <div style={{ marginTop: 8 }}>
+              <span className={`md3-status-chip ${s === 'in_repair' ? 'md3-status-chip--critical' : s === 'inactive' ? 'md3-status-chip--neutral' : 'md3-status-chip--success'}`}>
+                <span className="md3-status-chip__dot" />
+                {STATUS_LABELS[s]}
+              </span>
             </div>
           </div>
-          <div onClick={onClose} style={{ width: 26, height: 26, background: '#112030', border: '1px solid #1e3347', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-3)', fontSize: 12 }}>✕</div>
+          <button className="md3-icon-btn" onClick={onClose} aria-label="Закрыть">
+            <span className="ic" aria-hidden>close</span>
+          </button>
         </div>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: 12 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.7px', marginBottom: 8 }}>Сведения</div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="md3-card" style={{ padding: 14 }}>
+          <div style={{
+            fontSize: 11, fontWeight: 700,
+            color: 'var(--md-sys-color-on-surface-variant)',
+            textTransform: 'uppercase', letterSpacing: '0.7px', marginBottom: 10,
+          }}>Сведения</div>
           {[
             ['Адрес', obj.address],
             ['Район', obj.region],
@@ -308,32 +331,61 @@ function DetailPanel({ obj, onClose, onCreateJournal, onCreateTicket, onEdit, ac
               return obj.lat ? `${obj.lat?.toFixed(4)}, ${obj.lng?.toFixed(4)}` : '—'
             })()],
           ].map(([l, v]) => (
-            <div key={String(l)} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid var(--border-inner)' }}>
-              <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{l}</span>
-              <span style={{ fontSize: 12, color: '#b0cde0', fontWeight: 500, textAlign: 'right', maxWidth: 160 }}>{String(v ?? '—')}</span>
+            <div key={String(l)} style={{
+              display: 'flex', justifyContent: 'space-between',
+              padding: '6px 0',
+              borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+              gap: 14,
+            }}>
+              <span style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>{l}</span>
+              <span style={{ fontSize: 13, color: 'var(--md-sys-color-on-surface)', fontWeight: 500, textAlign: 'right', maxWidth: 170 }}>{String(v ?? '—')}</span>
             </div>
           ))}
         </div>
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: 12 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.7px', marginBottom: 8 }}>Обслуживание</div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0' }}>
-            <span style={{ fontSize: 11, color: 'var(--text-3)' }}>Последнее ТО</span>
-            <span style={{ fontSize: 12, color: obj.last_maintenance_at ? 'var(--green)' : 'var(--orange)', fontWeight: 500 }}>
+        <div className="md3-card" style={{ padding: 14 }}>
+          <div style={{
+            fontSize: 11, fontWeight: 700,
+            color: 'var(--md-sys-color-on-surface-variant)',
+            textTransform: 'uppercase', letterSpacing: '0.7px', marginBottom: 10,
+          }}>Обслуживание</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
+            <span style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>Последнее ТО</span>
+            <span style={{
+              fontSize: 13, fontWeight: 500,
+              color: obj.last_maintenance_at ? '#52C97E' : '#F0A830',
+            }}>
               {obj.last_maintenance_at ? new Date(obj.last_maintenance_at).toLocaleDateString('ru-RU') : 'Не было'}
             </span>
           </div>
         </div>
         {obj.notes && (
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: 12, fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>{obj.notes}</div>
+          <div className="md3-card" style={{ padding: 14, fontSize: 13, color: 'var(--md-sys-color-on-surface-variant)', lineHeight: 1.5 }}>{obj.notes}</div>
         )}
       </div>
-      <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
-        {access.canCreateJournal && <button onClick={() => onCreateJournal(obj.id!)} style={{ width: '100%', padding: 10, borderRadius: 8, background: 'var(--blue)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>📋 Создать журнал ТО</button>}
-        {access.canCreateTicket  && <button onClick={() => onCreateTicket(obj.id!)} style={{ width: '100%', padding: 10, borderRadius: 8, background: 'transparent', color: '#62b8f5', border: '1px solid #1a7dbd44', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>🔧 Создать заявку</button>}
+      <div style={{
+        padding: '12px 18px',
+        borderTop: '1px solid var(--md-sys-color-outline-variant)',
+        display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0,
+      }}>
+        {access.canCreateJournal && (
+          <button onClick={() => onCreateJournal(obj.id!)} className="md3-btn-filled" style={{ width: '100%' }}>
+            <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 18 }}>description</span>
+            Создать журнал ТО
+          </button>
+        )}
+        {access.canCreateTicket && (
+          <button onClick={() => onCreateTicket(obj.id!)} className="md3-btn-outlined" style={{ width: '100%' }}>
+            <span className="ic" aria-hidden>build</span>
+            Создать заявку
+          </button>
+        )}
         <button
           title="Пустой бланк журнала для размещения на объекте (Приложение №2 к ТЗ)"
           onClick={() => printBlankJournals([{ id: obj.id!, name: obj.name!, address: obj.address!, type: obj.type ?? 'OS' }])}
-          style={{ width: '100%', padding: 10, borderRadius: 8, background: 'transparent', color: '#62b8f5', border: '1px solid #1a7dbd44', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>🖨 Бланк журнала (Прил. №2)</button>
+          className="md3-btn-outlined" style={{ width: '100%' }}>
+          <span className="ic" aria-hidden>print</span>
+          Бланк журнала (Прил. №2)
+        </button>
         <button
           title="Акт технической оснащённости объекта (Приложение №5 к ТЗ)"
           onClick={() => printEquipmentAct([{
@@ -342,9 +394,17 @@ function DetailPanel({ obj, onClose, onCreateJournal, onCreateTicket, onEdit, ac
             type: obj.type ?? 'OS',
             equipment: ((obj as ObjectItem & { equipment?: { name: string; quantity: number }[] }).equipment ?? []),
           }])}
-          style={{ width: '100%', padding: 10, borderRadius: 8, background: 'transparent', color: '#62b8f5', border: '1px solid #1a7dbd44', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>📄 Акт оснащённости (Прил. №5)</button>
+          className="md3-btn-outlined" style={{ width: '100%' }}>
+          <span className="ic" aria-hidden>summarize</span>
+          Акт оснащённости (Прил. №5)
+        </button>
         <ObjectAiReport objectId={obj.id!} />
-        {access.canEditObject    && <button onClick={() => onEdit(obj)} style={{ width: '100%', padding: 10, borderRadius: 8, background: 'transparent', color: 'var(--text-3)', border: '1px solid var(--border-mid)', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>✏ Редактировать объект</button>}
+        {access.canEditObject && (
+          <button onClick={() => onEdit(obj)} className="md3-btn-outlined" style={{ width: '100%' }}>
+            <span className="ic" aria-hidden>edit</span>
+            Редактировать объект
+          </button>
+        )}
       </div>
     </div>
   )
@@ -466,41 +526,79 @@ export default function Objects() {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Topbar */}
-      <div style={{ height: 52, background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 14, flexShrink: 0 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-4)' }}>
-          <span style={{ color: '#4d7a9e' }}>Дашборд</span>
-          <span style={{ color: '#2a4460', margin: '0 4px' }}>›</span>
-          <span style={{ color: 'var(--text-1)' }}>Объекты</span>
-        </span>
-        {allObjects.filter(o => o.status === 'in_repair').length > 0 && <span className="chip chip-red">⚠ В ремонте: {allObjects.filter(o => o.status === 'in_repair').length}</span>}
+      <div style={{
+        height: 56, background: 'var(--md-sys-color-surface)',
+        borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+        display: 'flex', alignItems: 'center', padding: '0 24px', gap: 14, flexShrink: 0,
+      }}>
+        <nav aria-label="breadcrumbs" style={{ fontSize: 13, color: 'var(--md-sys-color-on-surface-variant)' }}>
+          <span style={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>Дашборд</span>
+          <span style={{ margin: '0 8px', color: 'var(--md-sys-color-outline)' }}>›</span>
+          <span style={{ color: 'var(--md-sys-color-on-surface)', fontWeight: 500 }}>Объекты</span>
+        </nav>
+        {allObjects.filter(o => o.status === 'in_repair').length > 0 && (
+          <span className="md3-status-chip md3-status-chip--critical">
+            <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 14 }}>warning</span>
+            В ремонте: {allObjects.filter(o => o.status === 'in_repair').length}
+          </span>
+        )}
         <div style={{ flex: 1 }} />
-        {loading && <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Загрузка…</span>}
-        <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{filtered.length} из {allObjects.length}</span>
-        {access.canExport && <button className="topbar-btn btn-outline" onClick={() => {
-          downloadCSV([
-            ['Название', 'Адрес', 'Тип', 'Район', 'Статус', '№ Договора', 'Последнее ТО', 'Примечания'],
-            ...filtered.map(o => [o.name, o.address, TYPE_LABELS[o.type ?? 'OS'], o.region, STATUS_LABELS[o.status ?? 'active'], o.contract_number, o.last_maintenance_at ? new Date(o.last_maintenance_at).toLocaleDateString('ru-RU') : '', o.notes]),
-          ], `objects_${new Date().toISOString().slice(0,10)}.csv`)
-        }}>⬇ Экспорт</button>}
-        {access.isAdmin && allObjects.length === 0 && error !== 'backend_down' && (
-          <button className="topbar-btn btn-outline" disabled={seeding} onClick={async () => { await runSeed(undefined); refetch() }}
-            style={{ color: 'var(--orange)', borderColor: '#d9770644' }}>
-            {seeding ? '⏳ Загрузка…' : '📂 Загрузить объекты из ТЗ'}
+        {loading && <span style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>Загрузка…</span>}
+        <span style={{ fontSize: 12, color: 'var(--md-sys-color-on-surface-variant)' }}>{filtered.length} из {allObjects.length}</span>
+        {access.canExport && (
+          <button className="md3-chip" onClick={() => {
+            downloadCSV([
+              ['Название', 'Адрес', 'Тип', 'Район', 'Статус', '№ Договора', 'Последнее ТО', 'Примечания'],
+              ...filtered.map(o => [o.name, o.address, TYPE_LABELS[o.type ?? 'OS'], o.region, STATUS_LABELS[o.status ?? 'active'], o.contract_number, o.last_maintenance_at ? new Date(o.last_maintenance_at).toLocaleDateString('ru-RU') : '', o.notes]),
+            ], `objects_${new Date().toISOString().slice(0,10)}.csv`)
+          }}>
+            <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 16 }}>download</span>
+            Экспорт
           </button>
         )}
-        {access.canCreateObject && <button className="topbar-btn btn-primary" onClick={() => setCreate(true)}>+ Добавить</button>}
+        {access.isAdmin && allObjects.length === 0 && error !== 'backend_down' && (
+          <button className="md3-chip" disabled={seeding} onClick={async () => { await runSeed(undefined); refetch() }}
+            style={{ color: '#F0A830', borderColor: '#F0A830' }}>
+            <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 16 }}>{seeding ? 'hourglass' : 'cloud_download'}</span>
+            {seeding ? 'Загрузка…' : 'Загрузить объекты из ТЗ'}
+          </button>
+        )}
+        {access.canCreateObject && (
+          <button className="md3-btn-tonal" onClick={() => setCreate(true)}>
+            <span className="ic" aria-hidden>add</span>
+            Добавить
+          </button>
+        )}
       </div>
 
       {/* Filters */}
-      <div style={{ padding: '10px 16px', background: '#0b1825', borderBottom: '1px solid var(--border)', display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' as const }}>
+      <div style={{
+        padding: '14px 24px',
+        background: 'var(--md-sys-color-surface-container-low)',
+        borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+        display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0, flexWrap: 'wrap' as const,
+      }}>
         <AddressAutocomplete onSelect={obj => setSelected(obj)} />
         {([[TYPES, filterType, setType], [REGIONS, filterDist, setDist], [STATUSES_F, filterStat, setStat]] as [string[], string, (v: string) => void][]).map(([list, val, setter], i) => (
-          <select key={i} value={val} onChange={e => setter(e.target.value)} style={{ background: 'var(--bg-input)', border: '1px solid var(--border-mid)', borderRadius: 7, color: '#8aacbf', fontSize: 12, padding: '7px 10px', outline: 'none', fontFamily: 'inherit' }}>
-            {list.map(t => <option key={t} style={{ background: 'var(--bg-panel)' }}>{t}</option>)}
+          <select key={i} value={val} onChange={e => setter(e.target.value)} style={{
+            background: 'var(--md-sys-color-surface-container)',
+            border: '1px solid var(--md-sys-color-outline)',
+            borderRadius: 'var(--md-sys-shape-corner-extra-small)',
+            color: 'var(--md-sys-color-on-surface)',
+            fontSize: 13, padding: '8px 12px',
+            outline: 'none', fontFamily: 'inherit', cursor: 'pointer',
+          }}>
+            {list.map(t => <option key={t} style={{ background: 'var(--md-sys-color-surface-container)' }}>{t}</option>)}
           </select>
         ))}
         {(search || filterType !== 'Все типы' || filterDist !== 'Все районы' || filterStat !== 'Все статусы') &&
-          <span onClick={() => { setSearch(''); setType('Все типы'); setDist('Все районы'); setStat('Все статусы') }} style={{ fontSize: 11, color: '#4d7a9e', cursor: 'pointer' }}>✕ Сбросить</span>}
+          <span onClick={() => { setSearch(''); setType('Все типы'); setDist('Все районы'); setStat('Все статусы') }} style={{
+            fontSize: 12, color: 'var(--md-sys-color-primary)', cursor: 'pointer', fontWeight: 600,
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+          }}>
+            <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 16 }}>close</span>
+            Сбросить
+          </span>}
       </div>
 
       {/* Split */}
@@ -540,8 +638,8 @@ export default function Objects() {
                         {td(<span style={{ color: obj.last_maintenance_at ? 'var(--green)' : 'var(--orange)', whiteSpace: 'nowrap' }}>{obj.last_maintenance_at ? new Date(obj.last_maintenance_at).toLocaleDateString('ru-RU') : 'Не было'}</span>)}
                         {td(
                           <div style={{ display: 'flex', gap: 6 }}>
-                            <button onClick={e => { e.stopPropagation(); setSelected(obj) }} style={{ background: 'transparent', border: '1px solid var(--border-mid)', borderRadius: 6, color: '#62b8f5', fontSize: 11, padding: '3px 9px', cursor: 'pointer', fontFamily: 'inherit' }}>Панель</button>
-                            <button onClick={e => { e.stopPropagation(); navigate(`/objects/${obj.id}`) }} style={{ background: '#0e2a42', border: '1px solid #1a3a5c', borderRadius: 6, color: '#62b8f5', fontSize: 11, padding: '3px 9px', cursor: 'pointer', fontFamily: 'inherit' }}>Страница →</button>
+                            <button onClick={e => { e.stopPropagation(); setSelected(obj) }} className="md3-chip">Панель</button>
+                            <button onClick={e => { e.stopPropagation(); navigate(`/objects/${obj.id}`) }} className="md3-chip md3-chip--selected">Страница →</button>
                           </div>
                         )}
                       </tr>
@@ -554,12 +652,32 @@ export default function Objects() {
         </div>
 
         {/* Map */}
-        <div style={{ width: 420, minWidth: 320, display: 'flex', flexDirection: 'column', background: '#0b1825', flexShrink: 0 }}>
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-1)' }}>📍 Калининградская область</span>
-            <div style={{ display: 'flex', gap: 10 }}>
-              {[['#27ae60','В норме'],['#e74c3c','В ремонте']].map(([c,l]) => (
-                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--text-3)' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />{l}</div>
+        <div style={{
+          width: 420, minWidth: 320,
+          display: 'flex', flexDirection: 'column',
+          background: 'var(--md-sys-color-surface-container-low)',
+          flexShrink: 0,
+        }}>
+          <div style={{
+            padding: '12px 18px',
+            borderBottom: '1px solid var(--md-sys-color-outline-variant)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            flexShrink: 0, gap: 12,
+          }}>
+            <span style={{
+              fontSize: 13.5, fontWeight: 600,
+              color: 'var(--md-sys-color-on-surface)',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+            }}>
+              <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 18 }}>map</span>
+              Калининградская область
+            </span>
+            <div style={{ display: 'flex', gap: 12 }}>
+              {[['#52C97E','В норме'],['var(--md-sys-color-error)','В ремонте']].map(([c,l]) => (
+                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--md-sys-color-on-surface-variant)' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />
+                  {l}
+                </div>
               ))}
             </div>
           </div>

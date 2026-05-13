@@ -505,6 +505,20 @@ export default function Objects() {
   const [editTarget, setEdit]   = useState<Partial<ObjectItem> | null>(null)
 
   const allObjects: Partial<ObjectItem>[] = data?.items ?? (error === 'backend_down' ? MOCK_OBJECTS : [])
+  const [mapExpanded, setMapExpanded] = useState(false)
+
+  // ESC закрывает fullscreen; после toggle уведомляем Leaflet о смене размеров
+  useEffect(() => {
+    if (!mapExpanded) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMapExpanded(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [mapExpanded])
+
+  useEffect(() => {
+    const t = setTimeout(() => window.dispatchEvent(new Event('resize')), 220)
+    return () => clearTimeout(t)
+  }, [mapExpanded])
 
   const filtered = useMemo(() => {
     let d = allObjects
@@ -652,7 +666,11 @@ export default function Objects() {
         </div>
 
         {/* Map */}
-        <div style={{
+        <div style={mapExpanded ? {
+          position: 'fixed', inset: 0, zIndex: 1000,
+          display: 'flex', flexDirection: 'column',
+          background: 'var(--md-sys-color-surface-container-low)',
+        } : {
           width: 420, minWidth: 320,
           display: 'flex', flexDirection: 'column',
           background: 'var(--md-sys-color-surface-container-low)',
@@ -671,14 +689,23 @@ export default function Objects() {
             }}>
               <span style={{ fontFamily: 'Material Symbols Rounded', fontSize: 18 }}>map</span>
               Калининградская область
+              {mapExpanded && <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--md-sys-color-on-surface-variant)', marginLeft: 4 }}>· {filtered.length} объектов</span>}
             </span>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
               {[['#52C97E','В норме'],['var(--md-sys-color-error)','В ремонте']].map(([c,l]) => (
                 <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--md-sys-color-on-surface-variant)' }}>
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />
                   {l}
                 </div>
               ))}
+              <button
+                className="md3-icon-btn"
+                onClick={() => setMapExpanded(e => !e)}
+                title={mapExpanded ? 'Свернуть карту (Esc)' : 'Развернуть карту на весь экран'}
+                aria-label={mapExpanded ? 'Свернуть карту' : 'Развернуть карту'}
+              >
+                <span className="ic" aria-hidden>{mapExpanded ? 'fullscreen_exit' : 'fullscreen'}</span>
+              </button>
             </div>
           </div>
           <div style={{ flex: 1, position: 'relative', minHeight: 0, overflow: 'hidden' }}>

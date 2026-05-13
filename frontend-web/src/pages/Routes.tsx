@@ -216,6 +216,19 @@ export default function RoutesPage() {
   const [allObjects, setAllObjects] = useState<ObjectItem[]>([])
   const [showAll, setShowAll] = useState(true)
   const [tab, setTab] = useState<'params' | 'regions'>('params')
+  const [mapExpanded, setMapExpanded] = useState(false)
+
+  useEffect(() => {
+    if (!mapExpanded) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMapExpanded(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [mapExpanded])
+
+  useEffect(() => {
+    const t = setTimeout(() => window.dispatchEvent(new Event('resize')), 220)
+    return () => clearTimeout(t)
+  }, [mapExpanded])
 
   const { mutate, loading, error } = useMutation((data: RoutePlanRequest) => routesApi.plan(data))
 
@@ -443,7 +456,12 @@ export default function RoutesPage() {
         </aside>
 
         {/* Map */}
-        <main style={{ position: 'relative', minHeight: 0, background: '#07111d' }}>
+        <main style={mapExpanded ? {
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: '#07111d',
+        } : {
+          position: 'relative', minHeight: 0, background: '#07111d',
+        }}>
           <RouteMap
             plan={plan}
             allObjects={allObjects}
@@ -453,6 +471,24 @@ export default function RoutesPage() {
             onMapClick={handleMapClick}
             planObjectIds={planObjectIds}
           />
+          <button
+            onClick={() => setMapExpanded(e => !e)}
+            title={mapExpanded ? 'Свернуть карту (Esc)' : 'Развернуть карту на весь экран'}
+            aria-label={mapExpanded ? 'Свернуть карту' : 'Развернуть карту'}
+            style={{
+              position: 'absolute', top: 12, right: 12, zIndex: 500,
+              width: 40, height: 40, borderRadius: 9999,
+              background: 'var(--md-sys-color-surface-container-high)',
+              color: 'var(--md-sys-color-on-surface)',
+              border: 'none', cursor: 'pointer',
+              display: 'grid', placeItems: 'center',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+              fontFamily: 'Material Symbols Rounded', fontSize: 22,
+              fontVariationSettings: "'FILL' 0, 'wght' 500",
+            }}
+          >
+            {mapExpanded ? 'fullscreen_exit' : 'fullscreen'}
+          </button>
         </main>
       </div>
     </div>

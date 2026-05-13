@@ -282,8 +282,8 @@ function DetailPanel({ obj, onClose, onCreateJournal, onCreateTicket, onEdit, ac
       background: 'var(--md-sys-color-surface-container-low)',
       borderLeft: '1px solid var(--md-sys-color-outline-variant)',
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      zIndex: 20,
-      boxShadow: '-8px 0 32px rgba(0,0,0,0.4)',
+      zIndex: 1100,
+      boxShadow: '-12px 0 32px rgba(0,0,0,0.55)',
       fontFamily: 'var(--md-sys-typescale-font)',
     }}>
       <div style={{
@@ -616,7 +616,7 @@ export default function Objects() {
       </div>
 
       {/* Split */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0, position: 'relative' }}>
         {/* Table */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0, borderRight: '1px solid var(--border)' }}>
           <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto' }}>
@@ -712,19 +712,20 @@ export default function Objects() {
             <LeafletMap objects={filtered} selected={selected} onSelect={o => setSelected(o === selected ? null : o)} />
           </div>
         </div>
+
+        <DetailPanel
+          obj={selected}
+          onClose={() => setSelected(null)}
+          onCreateJournal={(id) => navigate('/journals', { state: { createJournalForObject: id } })}
+          onCreateTicket={(id) => navigate('/tickets', { state: { createTicketForObject: id } })}
+          onEdit={(obj) => setEdit(obj)}
+          access={access}
+        />
       </div>
 
-      {/* Modals & panels */}
+      {/* Modals */}
       <CreateObjectModal open={createOpen} onClose={() => setCreate(false)} onCreated={refetch} />
       <EditObjectModal obj={editTarget} open={!!editTarget} onClose={() => setEdit(null)} onSaved={refetch} />
-      <DetailPanel
-        obj={selected}
-        onClose={() => setSelected(null)}
-        onCreateJournal={(id) => navigate('/journals', { state: { createJournalForObject: id } })}
-        onCreateTicket={(id) => navigate('/tickets', { state: { createTicketForObject: id } })}
-        onEdit={(obj) => setEdit(obj)}
-        access={access}
-      />
     </div>
   )
 }

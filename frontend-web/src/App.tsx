@@ -23,7 +23,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
             {'\n\n'}
             {(error as Error).stack?.slice(0, 600)}
           </pre>
-          <button onClick={() => { this.setState({ error: null }); window.location.href = '/dashboard' }}
+          <button onClick={() => { this.setState({ error: null }); window.location.href = '/to/dashboard' }}
             style={{ marginTop: 20, padding: '10px 24px', background: '#1a7dbd', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit' }}>
             ↩ На главную
           </button>
@@ -62,7 +62,7 @@ function RoleGuard({ check, children }: { check: (access: ReturnType<typeof getA
 export default function App() {
   return (
     <ErrorBoundary>
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter basename="/to/" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

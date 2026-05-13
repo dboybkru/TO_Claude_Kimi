@@ -81,10 +81,14 @@ function RouteMap({ plan, allObjects, showAll, startLat, startLng, onMapClick, p
       zoomControl: true,
       attributionControl: false,
     })
-    L.tileLayer(
-      'https://core-renderer-tiles.maps.yandex.net/tiles?l=map&v=21.08.09-1&x={x}&y={y}&z={z}&scale=1&lang=ru_RU',
-      { maxZoom: 19, attribution: '© Яндекс' }
-    ).addTo(map)
+    // CartoDB Dark Matter — настоящий EPSG:3857 (Web Mercator).
+    // Не используем Yandex тайлы напрямую: они в EPSG:3395, что даёт
+    // вертикальный сдвиг ~10-15 км относительно правильных координат.
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    }).addTo(map)
     leafletRef.current = map
     allLayerRef.current = L.layerGroup().addTo(map)
     routeLayerRef.current = L.layerGroup().addTo(map)

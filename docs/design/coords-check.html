@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Проверка координат SecureTO — все 313 объектов</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #0e1418; color: #cdd6f4; font: 14px/1.4 system-ui, sans-serif; }
+  #app { display: grid; grid-template-rows: 48px 1fr; height: 100%; }
+  header { padding: 0 16px; display: flex; align-items: center; gap: 16px; background: #1a232b; border-bottom: 1px solid #2a3540; }
+  header h1 { margin: 0; font-size: 14px; font-weight: 600; }
+  header .stat { font-size: 12px; color: #94a3b8; }
+  header .legend { display: inline-flex; align-items: center; gap: 14px; margin-left: auto; font-size: 12px; }
+  header .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+  #map { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>📍 SecureTO · координаты после перегеокодинга · CartoDB tiles (EPSG:3857)</h1>
+    <span class="stat" id="counter">…</span>
+    <span class="legend">
+      <span><span class="dot" style="background:#38bdf8"></span>exact (точный дом)</span>
+      <span><span class="dot" style="background:#f59e0b"></span>approximate (центр нас. пункта)</span>
+    </span>
+  </header>
+  <div id="map"></div>
+</div>
+
+<script src="coords-data.js"></script>
+<script>
+  const map = L.map('map', { center: [54.7, 21.0], zoom: 8, attributionControl: false });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19, subdomains: 'abcd',
+  }).addTo(map);
+
+  // bbox Калининградской области
+  const bbox = L.rectangle([[54.27, 19.50], [55.32, 22.95]], {
+    color: '#22d3ee', weight: 2, fill: false, dashArray: '6,6',
+  }).addTo(map);
+  bbox.bindTooltip('bbox области (54.27-55.32 N, 19.50-22.95 E)');
+
+  const data = window.COORDS || [];
+  let exact = 0, approx = 0;
+  data.forEach(o => {
+    const color = o.s === 'exact' ? '#38bdf8' : '#f59e0b';
+    if (o.s === 'exact') exact++; else approx++;
+    L.circleMarker([o.la, o.lg], {
+      radius: 5, color: '#0b1116', weight: 1, fillColor: color, fillOpacity: 0.9,
+    }).bindPopup(
+      `<b>${o.n}</b><br><span style="color:#94a3b8">${o.a}</span><br>` +
+      `<span style="color:${color}">${o.s}</span> · ${o.la.toFixed(4)}, ${o.lg.toFixed(4)}`
+    ).addTo(map);
+  });
+  document.getElementById('counter').textContent =
+    `${data.length} объектов · ${exact} exact · ${approx} approximate`;
+</script>
+</body>
+</html>

@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SecureTO — варианты Material 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded" rel="stylesheet">
+<style>
+  /* ---------- MD3 system tokens (shared) ---------- */
+  :root {
+    --md-sys-typescale-display-small-font: 'Roboto Flex', system-ui, sans-serif;
+    --md-sys-typescale-body-medium-font:   'Roboto Flex', system-ui, sans-serif;
+    --md-sys-typescale-label-large-font:   'Roboto Flex', system-ui, sans-serif;
+
+    --md-sys-shape-corner-extra-small: 4px;
+    --md-sys-shape-corner-small:       8px;
+    --md-sys-shape-corner-medium:     12px;
+    --md-sys-shape-corner-large:      16px;
+    --md-sys-shape-corner-extra-large:28px;
+    --md-sys-shape-corner-full:     9999px;
+
+    font-family: 'Roboto Flex', system-ui, sans-serif;
+  }
+
+  /* Page chrome */
+  body {
+    margin: 0;
+    background: #0e0e10;
+    color: #e6e1e5;
+    padding: 24px;
+  }
+  h1.page-title {
+    font: 600 22px/28px 'Roboto Flex', sans-serif;
+    letter-spacing: .2px;
+    margin: 0 0 4px;
+  }
+  p.page-sub {
+    margin: 0 0 24px;
+    color: #b4b0b8;
+    font: 400 14px/20px 'Roboto Flex', sans-serif;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 24px;
+  }
+  @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+  .variant {
+    border-radius: 20px;
+    overflow: hidden;
+    background: #1c1b1f;
+    box-shadow: 0 1px 0 rgba(255,255,255,.04) inset;
+  }
+  .variant header {
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid #2a2930;
+    background: #141315;
+  }
+  .variant header .tag {
+    font: 600 12px/16px 'Roboto Flex', sans-serif;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: #a8a3ad;
+  }
+  .variant header .name {
+    font: 600 14px/20px 'Roboto Flex', sans-serif;
+    color: #e6e1e5;
+  }
+  .stage {
+    min-height: 560px;
+    display: grid;
+    place-items: center;
+    padding: 28px;
+  }
+
+  /* ---------- Variant A: Dark / Default seed (blue, like current brand) ---------- */
+  .vA {
+    --md-sys-color-primary: #A8C7FA;
+    --md-sys-color-on-primary: #062E6F;
+    --md-sys-color-primary-container: #284777;
+    --md-sys-color-on-primary-container: #D8E2FF;
+    --md-sys-color-surface: #131316;
+    --md-sys-color-surface-container-low: #1B1B1F;
+    --md-sys-color-surface-container:     #1F1F23;
+    --md-sys-color-surface-container-high:#2A292E;
+    --md-sys-color-on-surface: #E5E1E6;
+    --md-sys-color-on-surface-variant: #C7C5D0;
+    --md-sys-color-outline: #8E9099;
+    --md-sys-color-outline-variant: #44464F;
+  }
+  .vA .stage { background: var(--md-sys-color-surface); }
+
+  /* ---------- Variant B: Light / Same seed ---------- */
+  .vB {
+    --md-sys-color-primary: #415F91;
+    --md-sys-color-on-primary: #FFFFFF;
+    --md-sys-color-primary-container: #D8E2FF;
+    --md-sys-color-on-primary-container: #001A41;
+    --md-sys-color-surface: #FAF8FD;
+    --md-sys-color-surface-container-low: #F5F2F8;
+    --md-sys-color-surface-container:     #EFEDF3;
+    --md-sys-color-on-surface: #1A1B20;
+    --md-sys-color-on-surface-variant: #44474E;
+    --md-sys-color-outline: #74777F;
+    --md-sys-color-outline-variant: #C4C6CF;
+  }
+  .vB .stage { background: var(--md-sys-color-surface); }
+
+  /* ---------- Variant C: Two-pane (canonical large-screen layout) ---------- */
+  .vC {
+    --md-sys-color-primary: #A8C7FA;
+    --md-sys-color-on-primary: #062E6F;
+    --md-sys-color-primary-container: #284777;
+    --md-sys-color-on-primary-container: #D8E2FF;
+    --md-sys-color-surface: #131316;
+    --md-sys-color-surface-container: #1F1F23;
+    --md-sys-color-on-surface: #E5E1E6;
+    --md-sys-color-on-surface-variant: #C7C5D0;
+    --md-sys-color-outline: #8E9099;
+    --md-sys-color-outline-variant: #44464F;
+  }
+  .vC .stage { background: var(--md-sys-color-surface); padding: 0; }
+  .twopane {
+    width: 100%;
+    height: 560px;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+  }
+  .twopane .brand {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .twopane .brand::after {
+    content: '';
+    position: absolute;
+    right: -120px; top: -80px;
+    width: 380px; height: 380px;
+    border-radius: 9999px;
+    background: rgba(255,255,255,.06);
+  }
+  .twopane .brand::before {
+    content: '';
+    position: absolute;
+    right: 60px; bottom: -140px;
+    width: 280px; height: 280px;
+    border-radius: 9999px;
+    background: rgba(255,255,255,.04);
+  }
+  .twopane .brand .lockup { display:flex; align-items:center; gap:14px; font:600 22px/28px 'Roboto Flex',sans-serif; }
+  .twopane .brand .lockup .shield {
+    width: 56px; height: 56px;
+    border-radius: 18px;
+    background: rgba(255,255,255,.14);
+    display:grid; place-items:center;
+    font-family: 'Material Symbols Rounded';
+    font-size: 32px;
+    font-variation-settings: 'FILL' 1, 'wght' 500;
+  }
+  .twopane .brand .hero {
+    font: 500 40px/44px 'Roboto Flex', sans-serif;
+    letter-spacing: -.5px;
+    max-width: 16ch;
+    z-index: 1;
+  }
+  .twopane .brand .features {
+    display: grid; gap: 10px;
+    z-index: 1;
+    font: 400 14px/20px 'Roboto Flex', sans-serif;
+    color: rgba(255,255,255,.86);
+  }
+  .twopane .brand .features .row { display:flex; align-items:center; gap:10px; }
+  .twopane .brand .features .row .ic {
+    font-family: 'Material Symbols Rounded'; font-size: 20px; opacity:.9;
+    font-variation-settings: 'FILL' 1, 'wght' 500;
+  }
+  .twopane .form {
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    padding: 48px;
+    display: grid;
+    align-content: center;
+    gap: 16px;
+  }
+
+  /* ---------- Variant D: Expressive light teal ---------- */
+  .vD {
+    --md-sys-color-primary: #006A65;
+    --md-sys-color-on-primary: #FFFFFF;
+    --md-sys-color-primary-container: #6FF7EC;
+    --md-sys-color-on-primary-container: #00201E;
+    --md-sys-color-surface: #F4FBFA;
+    --md-sys-color-surface-container-low: #ECF4F3;
+    --md-sys-color-surface-container:     #E4ECEB;
+    --md-sys-color-on-surface: #161D1C;
+    --md-sys-color-on-surface-variant: #3F4948;
+    --md-sys-color-outline: #6F7978;
+    --md-sys-color-outline-variant: #BEC9C7;
+  }
+  .vD .stage { background: var(--md-sys-color-surface); }
+
+  /* ---------- Auth card (reused) ---------- */
+  .auth-card {
+    width: 360px;
+    background: var(--md-sys-color-surface-container, #1F1F23);
+    color: var(--md-sys-color-on-surface);
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    padding: 32px 24px 24px;
+    display: grid;
+    gap: 16px;
+    text-align: center;
+  }
+  .auth-card .icon-tonal {
+    justify-self: center;
+    width: 56px; height: 56px;
+    border-radius: var(--md-sys-shape-corner-large);
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    display: grid; place-items: center;
+    font-family: 'Material Symbols Rounded';
+    font-size: 30px;
+    font-variation-settings: 'FILL' 1, 'wght' 500;
+  }
+  .auth-card .title {
+    font: 600 32px/40px 'Roboto Flex', sans-serif;
+    letter-spacing: -.2px;
+  }
+  .auth-card .sub {
+    margin-top: -8px;
+    color: var(--md-sys-color-on-surface-variant);
+    font: 400 14px/20px 'Roboto Flex', sans-serif;
+  }
+  .auth-card .field {
+    text-align: left;
+    position: relative;
+  }
+  .auth-card .field .input {
+    width: 100%;
+    box-sizing: border-box;
+    height: 56px;
+    padding: 18px 16px 4px;
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    font: 400 16px/24px 'Roboto Flex', sans-serif;
+    outline: none;
+  }
+  .auth-card .field .input:focus {
+    border-color: var(--md-sys-color-primary);
+    border-width: 2px;
+    padding: 17px 15px 3px;
+  }
+  .auth-card .field .lbl {
+    position: absolute;
+    top: -8px; left: 12px;
+    padding: 0 4px;
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface-variant);
+    font: 500 12px/16px 'Roboto Flex', sans-serif;
+  }
+  .vC .auth-card .field .lbl, .vC .auth-card { /* two-pane card uses surface */ }
+  .vC .auth-card .field .lbl { background: var(--md-sys-color-surface); }
+  .vB .auth-card .field .lbl, .vD .auth-card .field .lbl {
+    background: var(--md-sys-color-surface-container);
+  }
+  .btn-filled {
+    width: 100%;
+    height: 48px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    border: none;
+    cursor: pointer;
+    font: 600 14px/20px 'Roboto Flex', sans-serif;
+    letter-spacing: .1px;
+    margin-top: 4px;
+  }
+  .meta-row {
+    margin-top: 4px;
+    display: flex; justify-content: space-between; align-items: center;
+    font: 500 12px/16px 'Roboto Flex', sans-serif;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+  .meta-row a {
+    color: var(--md-sys-color-primary);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  /* Two-pane variant: form lives without an inner card, edge to edge */
+  .vC .auth-card {
+    background: transparent;
+    padding: 0;
+    width: 100%;
+    max-width: 360px;
+    text-align: left;
+  }
+  .vC .auth-card .title { text-align: left; font-size: 36px; line-height: 44px; }
+  .vC .auth-card .icon-tonal { display: none; }
+  .vC .auth-card .sub { margin: 0 0 8px; }
+  .vC .meta-row { justify-content: flex-start; gap: 6px; }
+
+  /* expressive D — slightly bolder shape & emphasized headline */
+  .vD .auth-card { background: var(--md-sys-color-surface-container); border-radius: 32px; }
+  .vD .auth-card .title { font-weight: 700; }
+  .vD .btn-filled { height: 56px; border-radius: 16px; font-size: 15px; }
+</style>
+</head>
+<body>
+  <h1 class="page-title">SecureTO · /to/login — варианты Material 3</h1>
+  <p class="page-sub">4 направления редизайна. Все цвета, формы и типографика выражены через токены <code>--md-sys-*</code>.</p>
+
+  <div class="grid">
+
+    <!-- A: Dark default (closest to current) -->
+    <section class="variant vA">
+      <header><span class="name">A · Dark, фирменный синий</span><span class="tag">surface · MD3</span></header>
+      <div class="stage">
+        <div class="auth-card">
+          <div class="icon-tonal">shield</div>
+          <div class="title">SecureTO</div>
+          <div class="sub">Система ТО охраны и СКУД · Ростелеком</div>
+          <div class="field">
+            <span class="lbl">Email</span>
+            <input class="input" type="email" value="dboy@bk.ru">
+          </div>
+          <div class="field">
+            <span class="lbl">Пароль</span>
+            <input class="input" type="password" value="••••••••">
+          </div>
+          <button class="btn-filled">Войти в систему</button>
+          <div class="meta-row">
+            <span>Нет аккаунта? <a href="#">Регистрация</a></span>
+            <a href="#">Забыли пароль?</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- B: Light same seed -->
+    <section class="variant vB">
+      <header><span class="name">B · Light, тот же seed</span><span class="tag">surface · MD3</span></header>
+      <div class="stage">
+        <div class="auth-card">
+          <div class="icon-tonal">shield</div>
+          <div class="title">SecureTO</div>
+          <div class="sub">Система ТО охраны и СКУД · Ростелеком</div>
+          <div class="field">
+            <span class="lbl">Email</span>
+            <input class="input" type="email" value="dboy@bk.ru">
+          </div>
+          <div class="field">
+            <span class="lbl">Пароль</span>
+            <input class="input" type="password" value="••••••••">
+          </div>
+          <button class="btn-filled">Войти в систему</button>
+          <div class="meta-row">
+            <span>Нет аккаунта? <a href="#">Регистрация</a></span>
+            <a href="#">Забыли пароль?</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- C: Two-pane canonical large-screen layout -->
+    <section class="variant vC">
+      <header><span class="name">C · Two-pane (canonical layout ≥ 600dp)</span><span class="tag">primary-container · brand pane</span></header>
+      <div class="stage">
+        <div class="twopane">
+          <div class="brand">
+            <div class="lockup"><span class="shield">shield</span> SecureTO</div>
+            <div class="hero">Техобслуживание охраны и СКУД — в одном окне</div>
+            <div class="features">
+              <div class="row"><span class="ic">verified</span> Регламентные работы и журналы по объектам</div>
+              <div class="row"><span class="ic">key</span> Картотека ключей, считывателей и контроллеров</div>
+              <div class="row"><span class="ic">notifications_active</span> Заявки и уведомления в реальном времени</div>
+            </div>
+          </div>
+          <div class="form">
+            <div class="auth-card">
+              <div class="title">Вход</div>
+              <div class="sub">Используйте корпоративную почту Ростелеком.</div>
+              <div class="field">
+                <span class="lbl">Email</span>
+                <input class="input" type="email" value="dboy@bk.ru">
+              </div>
+              <div class="field">
+                <span class="lbl">Пароль</span>
+                <input class="input" type="password" value="••••••••">
+              </div>
+              <button class="btn-filled">Войти в систему</button>
+              <div class="meta-row">
+                <a href="#">Регистрация</a>
+                <span>·</span>
+                <a href="#">Забыли пароль?</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- D: Expressive teal -->
+    <section class="variant vD">
+      <header><span class="name">D · Expressive, бирюзовый seed</span><span class="tag">corner-large · emphasized</span></header>
+      <div class="stage">
+        <div class="auth-card">
+          <div class="icon-tonal">shield_lock</div>
+          <div class="title">SecureTO</div>
+          <div class="sub">Система ТО охраны и СКУД · Ростелеком</div>
+          <div class="field">
+            <span class="lbl">Email</span>
+            <input class="input" type="email" value="dboy@bk.ru">
+          </div>
+          <div class="field">
+            <span class="lbl">Пароль</span>
+            <input class="input" type="password" value="••••••••">
+          </div>
+          <button class="btn-filled">Войти в систему</button>
+          <div class="meta-row">
+            <span>Нет аккаунта? <a href="#">Регистрация</a></span>
+            <a href="#">Забыли пароль?</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>
